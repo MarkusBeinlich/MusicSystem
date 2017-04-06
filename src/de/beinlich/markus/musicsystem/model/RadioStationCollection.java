@@ -12,7 +12,7 @@ import java.util.*;
  *
  * @author Markus Beinlich
  */
-public class RadioStationCollection extends MusicCollection {
+class RadioStationCollection extends MusicCollection {
 
     protected static RadioStationCollection uniqueInstance;
 

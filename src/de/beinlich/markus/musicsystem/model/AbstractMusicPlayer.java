@@ -18,7 +18,7 @@ abstract class AbstractMusicPlayer implements MusicPlayer, MusicPlayerPackage, S
 
     private String title = this.getClass().getSimpleName();
     private MusicSystemState musicSystemState;
-    private double volume;
+    private double volume = 20.0;
     private transient final ArrayList<VolumeObserver> volumeObservers = new ArrayList<>();
     private transient final ArrayList<TrackTimeObserver> trackTimeObservers = new ArrayList<>();
     private transient final ArrayList<TrackObserver> trackObservers = new ArrayList<>();

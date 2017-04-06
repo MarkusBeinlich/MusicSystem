@@ -13,54 +13,61 @@ import java.util.*;
  *
  * @author Markus
  */
-public class MusicCollection implements MusicCollectionInterface, Serializable{
+public class MusicCollection implements MusicCollectionInterface, Serializable {
 
     protected transient static DatabaseConnection dbc = new DatabaseConnection();
     protected List<Record> records;
-     
+
     protected MusicCollection() {
     }
 
-//    public static synchronized MusicCollection getInstance() {
-//        if (uniqueInstance == null) {
-//            uniqueInstance = new MusicCollection();
-//        }
-//        return uniqueInstance;
-//    }
-    
-    public Record getRecord(){
+    public static synchronized MusicCollection getInstance(String format) {
+        switch (format) {
+            case "CdPlayer":
+                return CdCollection.getInstance();
+            case "Mp3Player":
+                return Mp3Collection.getInstance();
+            case "Record":
+                return RecordCollection.getInstance();
+            case "Radio":
+                return RadioStationCollection.getInstance();
+            default:
+                throw new NoSuchElementException("Unbekanntes Format:" + format);
+        }
+    }
+
+    public Record getRecord() {
         return records.get(0);
     }
-     
+
     /**
      *
      * @param record
      */
-    public void addRecord (Record record){
-         records.add(record);
-     }
-     
+    public void addRecord(Record record) {
+        records.add(record);
+    }
+
     /**
      *
      * @param i
      * @return
      */
     public Record getRecord(int i) {
-         return records.get(i);
-     }
-     
+        return records.get(i);
+    }
+
     /**
      *
      * @return
      */
     public List<Record> getRecords() {
-         return Collections.unmodifiableList(records);
-     }
+        return Collections.unmodifiableList(records);
+    }
 
     @Override
     public void registerObserver(MusicCollectionObserver o) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
-
 
 }

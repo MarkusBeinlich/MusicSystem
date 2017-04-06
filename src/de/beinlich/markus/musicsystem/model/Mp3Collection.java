@@ -11,7 +11,7 @@ import de.beinlich.markus.musicsystem.model.db.RecordCollectionConnector;
  *
  * @author Markus Beinlich
  */
-public class Mp3Collection extends MusicCollection {
+class Mp3Collection extends MusicCollection {
     protected static Mp3Collection uniqueInstance;
  
     /**

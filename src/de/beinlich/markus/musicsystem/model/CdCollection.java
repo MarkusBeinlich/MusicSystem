@@ -11,7 +11,7 @@ import de.beinlich.markus.musicsystem.model.db.RecordCollectionConnector;
  *
  * @author Markus Beinlich
  */
-public class CdCollection extends MusicCollection {
+class CdCollection extends MusicCollection {
 
     protected static CdCollection uniqueInstance;
 

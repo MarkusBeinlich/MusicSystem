@@ -102,7 +102,7 @@ public class MusicSystem extends ElectricalDevice implements MusicSystemInterfac
      * "title":"UKW-Radio" } ] }
      * @param name
      */
-    public void readConfiguration(String name) {
+    private void readConfiguration(String name) {
         File file;
         int port = 50_000;
         String fileName;

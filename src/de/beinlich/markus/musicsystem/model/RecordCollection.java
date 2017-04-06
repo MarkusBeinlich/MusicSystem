@@ -12,7 +12,7 @@ import java.util.*;
  *
  * @author Markus Beinlich
  */
-public class RecordCollection extends MusicCollection {
+class RecordCollection extends MusicCollection {
     protected static RecordCollection uniqueInstance;
      public final static String MUSIC_SOURCE = "RecordPlayer";
     /**
