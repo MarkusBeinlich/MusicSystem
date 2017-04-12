@@ -17,7 +17,7 @@ import java.io.*;
  *
  * @author Markus Beinlich
  */
-public interface MusicPlayer {
+public interface MusicPlayerInterface {
 
 
     /**
@@ -25,5 +25,7 @@ public interface MusicPlayer {
      * @return
      */
     String getTitle();
+    
+    MusicPlayerDto getDto();
 
 }

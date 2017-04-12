@@ -12,14 +12,16 @@ import java.util.*;
  * @author Markus Beinlich
  */
 public interface MusicCollectionInterface {
+    
+    MusicCollectionDto getMusicCollectionDto();
 
-    Record getRecord();
+    RecordInterface getRecord();
 
-    List<Record> getRecords();
+    List<RecordInterface> getRecords();
 
     void addRecord(Record record);
 
-    Record getRecord(int i);
+    RecordInterface getRecord(int i);
 
     void registerObserver(MusicCollectionObserver o);
 

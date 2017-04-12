@@ -12,22 +12,24 @@ import java.util.*;
  * @author Markus Beinlich
  */
 public interface MusicSystemInterface {
+    
+    MusicSystemDto getDto();
 
-    MusicPlayer getActivePlayer();
+    MusicPlayerInterface getActivePlayer();
 
-    Record getRecord();
+    RecordInterface getRecord();
 
     void setRecord(Record record);
 
     MusicSystemState getMusicSystemState();
 
-    LinkedList<MusicPlayer> getSources();
+    List<MusicPlayerInterface> getPlayers();
 
-    MusicPlayer getSource(String title);
+    MusicPlayerInterface getSource(String title);
 
-    PlayListComponent getCurrentTrack();
+    PlayListComponentInterface getCurrentTrack();
 
-    String getName();
+    String getMusicSystemName();
 
     String getLocation();
 
@@ -49,7 +51,7 @@ public interface MusicSystemInterface {
 
     void setCurrentTrack(PlayListComponent track);
 
-    void setActiveSource(MusicPlayer activeSource) throws IllegaleSourceException;
+    void setActiveSource(MusicPlayerInterface activeSource) throws IllegaleSourceException;
 
     public ServerAddr getServerAddr();
 

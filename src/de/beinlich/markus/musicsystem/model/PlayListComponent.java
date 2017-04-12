@@ -6,18 +6,26 @@
 package de.beinlich.markus.musicsystem.model;
 
 import java.io.Serializable;
-import java.util.*;
 
 /**
  *
  * @author Markus Beinlich
  */
-public abstract class PlayListComponent implements Serializable {
+public abstract class PlayListComponent implements PlayListComponentInterface, Serializable {
 
     private String title;
     private int playingTime;
     private int uid;
     private String fileName;
+
+    public PlayListComponentDto getDto() {
+        PlayListComponentDto playListComponentDto = new PlayListComponentDto();
+        playListComponentDto.title = this.title;
+        playListComponentDto.playingTime = this.playingTime;
+        playListComponentDto.uid = this.uid;
+        playListComponentDto.fileName = this.fileName;
+        return playListComponentDto;
+    }
 
     /**
      *

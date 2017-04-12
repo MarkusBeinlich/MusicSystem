@@ -77,7 +77,7 @@ public class RecordCollectionConnector {
                         resultSet.getString("title"),
                         resultSet.getString("frequency")
                 );
-                rec.addTrack(radio);
+                rec.addTrack((PlayListComponentInterface)radio);
             }
         } catch (SQLException ex) {
             System.out.println(ex);
@@ -122,7 +122,7 @@ public class RecordCollectionConnector {
                         resultSet.getString("filename")
                 );
                 if (rec != null) {
-                    rec.addTrack(track);
+                    rec.addTrack((PlayListComponentInterface)track);
                 }
             }
         } catch (SQLException ex) {
@@ -161,7 +161,7 @@ public class RecordCollectionConnector {
                         resultSet.getString("filename")
                 );
                 if (rec != null) {
-                    rec.addTrack(track);
+                    rec.addTrack((PlayListComponentInterface)track);
                 }
             }
         } catch (SQLException ex) {

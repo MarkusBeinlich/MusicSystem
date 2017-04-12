@@ -8,13 +8,13 @@ import java.util.*;
  *
  * @author Markus Beinlich
  */
-public class Record implements Serializable {
+public class Record implements RecordInterface, Serializable {
 
     private String title;
     private String artist;
     private String medium;
     private byte[] cover;
-    private ArrayList<PlayListComponent> tracks;
+    private ArrayList<PlayListComponentInterface> tracks;
 
     /**
      *
@@ -45,6 +45,19 @@ public class Record implements Serializable {
         this.artist = artist;
         this.cover = cover;
         tracks = new ArrayList<>();
+    }
+
+    public RecordDto getDto() {
+        RecordDto recordDto = new RecordDto();
+        recordDto.title = this.title;
+        recordDto.artist = this.artist;
+        recordDto.medium = this.medium;
+        recordDto.cover = this.cover;
+        recordDto.tracks = new ArrayList();
+        for (PlayListComponentInterface track : tracks) {
+            recordDto.tracks.add(track.getDto());
+        }
+        return recordDto;
     }
 
     /**
@@ -83,20 +96,20 @@ public class Record implements Serializable {
 
     @Override
     public String toString() {
-        return this.artist + " - " +this.getTitle();
+        return this.artist + " - " + this.getTitle();
     }
 
     /**
      * @return the tracks
      */
-    public List<PlayListComponent> getTracks() {
+    public List<PlayListComponentInterface> getTracks() {
         return Collections.unmodifiableList(tracks);
     }
 
     /**
      * @param tracks the tracks to set
      */
-    public void setTracks(ArrayList<PlayListComponent> tracks) {
+    public void setTracks(ArrayList<PlayListComponentInterface> tracks) {
         this.tracks = tracks;
     }
 
@@ -104,7 +117,7 @@ public class Record implements Serializable {
      *
      * @param track
      */
-    public void addTrack(PlayListComponent track) {
+    public void addTrack(PlayListComponentInterface track) {
         tracks.add(track);
     }
 

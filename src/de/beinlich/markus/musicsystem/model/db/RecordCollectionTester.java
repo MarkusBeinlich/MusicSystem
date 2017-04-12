@@ -24,7 +24,7 @@ public class RecordCollectionTester {
         List<de.beinlich.markus.musicsystem.model.Record> records = rc.readRecords("CD");
         for (de.beinlich.markus.musicsystem.model.Record record : records) {
             System.out.println(record);
-            for (PlayListComponent track : record.getTracks()) {
+            for (PlayListComponentInterface track : record.getTracks()) {
                 System.out.println(track);
             }
         }

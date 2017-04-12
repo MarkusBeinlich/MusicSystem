@@ -24,14 +24,17 @@ import jdk.nashorn.api.scripting.*;
  *
  * @author Markus Beinlich
  */
-public class MusicSystem extends ElectricalDevice implements MusicSystemInterface {
+public class MusicSystem implements MusicSystemInterface {
 
     private static MusicSystem uniqueInstance;
-    private MusicPlayerPackage activeSource;
-//    private int port;
-//    private String server_ip;
+    private String musicSystemName;
+    private boolean power;
+    private boolean onOffSwitch;
+    private String location;
+    private AbstractMusicPlayer activePlayer;
     private ServerAddr serverAddr;
-    final private LinkedList<MusicPlayer> sources;
+    final private LinkedList<MusicPlayerInterface> players;
+
     private transient final ArrayList<MusicPlayerObserver> musicPlayerObservers = new ArrayList<>();
 
     /**
@@ -72,9 +75,12 @@ public class MusicSystem extends ElectricalDevice implements MusicSystemInterfac
      * @param power
      * @param onOffSwitch
      */
-    public MusicSystem(String name, String location, boolean power, boolean onOffSwitch) {
-        super(name, location, power, onOffSwitch);
-        this.sources = new LinkedList<>();
+    private MusicSystem(String name, String location, boolean power, boolean onOffSwitch) {
+        this.musicSystemName = name;
+        this.location = name;
+        this.power = power;
+        this.onOffSwitch = onOffSwitch;
+        this.players = new LinkedList<>();
     }
 
     public static synchronized MusicSystem getInstance(String name) {
@@ -100,6 +106,7 @@ public class MusicSystem extends ElectricalDevice implements MusicSystemInterfac
      * "musicplayers":[ { "type":"CdPlayer", "title":"CD-Player" }, {
      * "type":"RecordPlayer", "title":"Plattenspieler" }, { "type":"Radio",
      * "title":"UKW-Radio" } ] }
+     *
      * @param name
      */
     private void readConfiguration(String name) {
@@ -125,7 +132,7 @@ public class MusicSystem extends ElectricalDevice implements MusicSystemInterfac
         JSObject obj = (JSObject) engine.get("musicsystem");
         JSObject ms = (JSObject) obj.getMember("musicplayers");
         if (obj.hasMember("name")) {
-            this.setName((String) obj.getMember("name"));
+            this.setMusicSystemName((String) obj.getMember("name"));
         }
         if (obj.hasMember("location")) {
             this.setLocation((String) obj.getMember("location"));
@@ -136,7 +143,7 @@ public class MusicSystem extends ElectricalDevice implements MusicSystemInterfac
         if (obj.hasMember("server_ip")) {
             server_ip = (String) obj.getMember("server_ip");
         }
-        this.serverAddr = new ServerAddr(port, server_ip, this.getName(), true);
+        this.serverAddr = new ServerAddr(port, server_ip, this.getMusicSystemName(), true);
         this.setPower(true);
         this.setOnOffSwitch(true);
 
@@ -170,11 +177,26 @@ public class MusicSystem extends ElectricalDevice implements MusicSystemInterfac
             }
         }
         try {
-            this.setActiveSource(this.getSources().getFirst());
+            this.setActiveSource(this.getPlayers().getFirst());
         } catch (IllegaleSourceException ex) {
             System.out.println(System.currentTimeMillis() + "Gerät kann nicht verwendet werden. Fehler: " + ex.getMessage());
         }
 
+    }
+
+    public MusicSystemDto getDto() {
+        MusicSystemDto musicSystemDto = new MusicSystemDto();
+        musicSystemDto.musicSystemName = this.musicSystemName;
+        musicSystemDto.power = this.power;
+        musicSystemDto.onOffSwitch = this.onOffSwitch;
+        musicSystemDto.location = this.location;
+        musicSystemDto.activePlayer = this.activePlayer.getDto();
+        musicSystemDto.serverAddr = this.serverAddr;
+        musicSystemDto.players = new LinkedList();
+        for (MusicPlayerInterface mp : players) {
+            musicSystemDto.players.add(((AbstractMusicPlayer) mp).getDto());
+        }
+        return musicSystemDto;
     }
 
     /**
@@ -183,7 +205,7 @@ public class MusicSystem extends ElectricalDevice implements MusicSystemInterfac
      */
     @Override
     public double getVolume() {
-        return activeSource.getVolume();
+        return activePlayer.getVolume();
     }
 
     /**
@@ -193,12 +215,12 @@ public class MusicSystem extends ElectricalDevice implements MusicSystemInterfac
     public void setVolume(double volume) {
         if (volume > 100) {
             System.out.println(System.currentTimeMillis() + "Die maximale Lautstärke ist 100.");
-            activeSource.setVolume(100.0);
+            activePlayer.setVolume(100.0);
         } else if (volume < 0) {
             System.out.println(System.currentTimeMillis() + "Die minimal Lautstärke ist 0.");
-            activeSource.setVolume(0.0);
+            activePlayer.setVolume(0.0);
         } else {
-            activeSource.setVolume(volume);
+            activePlayer.setVolume(volume);
         }
         System.out.println(System.currentTimeMillis() + "Lautstärke: " + getVolume());
     }
@@ -206,7 +228,7 @@ public class MusicSystem extends ElectricalDevice implements MusicSystemInterfac
     @Override
     public void play() {
         boolean ok = true;
-        if (activeSource == null) {
+        if (activePlayer == null) {
             System.out.println(System.currentTimeMillis() + "Sie müssen erst mit 'setActiveSource(???) eine Music-Quelle angeben.");
             ok = false;
         }
@@ -219,36 +241,36 @@ public class MusicSystem extends ElectricalDevice implements MusicSystemInterfac
             ok = false;
         }
         if (ok == true) {
-            activeSource.play();
+            activePlayer.play();
         }
     }
 
     @Override
     public void pause() {
-        activeSource.pause();
+        activePlayer.pause();
     }
 
     @Override
     public void stop() {
-        activeSource.stop();
+        activePlayer.stop();
     }
 
     @Override
     public void previous() {
-        activeSource.previous();
+        activePlayer.previous();
     }
 
     @Override
     public void next() {
-        activeSource.next();
+        activePlayer.next();
     }
 
     /**
      * @return the activeSource
      */
     @Override
-    public MusicPlayer getActivePlayer() {
-        return (MusicPlayer) activeSource;
+    public MusicPlayerInterface getActivePlayer() {
+        return (MusicPlayerInterface) activePlayer;
     }
 
     /**
@@ -256,16 +278,16 @@ public class MusicSystem extends ElectricalDevice implements MusicSystemInterfac
      * @throws de.beinlich.markus.musicsystem.model.IllegaleSourceException
      */
     @Override
-    public void setActiveSource(MusicPlayer activeSource) throws IllegaleSourceException {
+    public void setActiveSource(MusicPlayerInterface activeSource) throws IllegaleSourceException {
         //prüfen, ob die zu aktivierende Source zu den vorhandenen Sourcen gehört
-        if (-1 == getSources().indexOf(activeSource)) {
-            throw new IllegaleSourceException("Source " + activeSource + " is not part of sources: " + getSources());
+        if (-1 == getPlayers().indexOf(activeSource)) {
+            throw new IllegaleSourceException("Source " + activeSource + " is not part of sources: " + getPlayers());
         }
         //prüfen, ob es bereits eine aktive Source gibt und diese gegebenfalls stoppen
-        if (this.activeSource != null) {
-            this.activeSource.stop();
+        if (this.activePlayer != null) {
+            this.activePlayer.stop();
         }
-        this.activeSource = (MusicPlayerPackage) activeSource;
+        this.activePlayer = (AbstractMusicPlayer) activeSource;
 
         notifyMusicPlayerObservers();
     }
@@ -273,82 +295,79 @@ public class MusicSystem extends ElectricalDevice implements MusicSystemInterfac
     /**
      * @param source the activeSource to set
      */
-    private void addSource(MusicPlayer source) {
+    private void addSource(MusicPlayerInterface source) {
 //        source.stop();
-        sources.add(source);
+        players.add(source);
         notifyMusicPlayerObservers();
     }
 
     @Override
     public String toString() {
         String as = (this.getActivePlayer() == null) ? "" : "\nAktive Quelle:" + this.getActivePlayer().getClass().getSimpleName();
-        return "\nGerätename: " + this.getName()
+        return "\nGerätename: " + this.getMusicSystemName()
                 + "\nStandort: " + this.getLocation()
                 + "\nStrom vorhanden: " + isPower()
                 + "\nGerät eingeschaltet:" + isOnOffSwitch()
                 + as
-                + "\nQuellen: " + this.getSources().toString();
+                + "\nQuellen: " + this.getPlayers().toString();
     }
 
     @Override
     public MusicSystemState getMusicSystemState() {
-        return activeSource.getMusicSystemState();
+        return activePlayer.getMusicSystemState();
     }
 
     @Override
     public Record getRecord() {
-        return activeSource.getRecord();
+        return activePlayer.getRecord();
     }
 
     @Override
-    public PlayListComponent getCurrentTrack() {
-        return activeSource.getCurrentTrack();
+    public PlayListComponentInterface getCurrentTrack() {
+        return (PlayListComponentInterface)activePlayer.getCurrentTrack();
     }
 
     @Override
     public int getCurrentTimeTrack() {
-        return activeSource.getCurrentTimeTrack();
+        return activePlayer.getCurrentTimeTrack();
     }
 
     @Override
     public void setCurrentTrack(PlayListComponent track) {
-        activeSource.setCurrentTrack(track);
+        activePlayer.setCurrentTrack(track);
     }
 
     @Override
     public void setRecord(Record record) {
-        activeSource.setRecord(record);
+        activePlayer.setRecord(record);
     }
 
-    /**
-     *
-     * @param o
-     */
+
     @Override
     public void registerObserver(TrackObserver o) {
-        activeSource.registerObserver(o);
+        activePlayer.registerObserver(o);
     }
 
     public void removeObserver(TrackObserver o) {
-        activeSource.removeObserver(o);
+        activePlayer.removeObserver(o);
     }
 
     @Override
     public void registerObserver(StateObserver o) {
-        activeSource.registerObserver(o);
+        activePlayer.registerObserver(o);
     }
 
     public void removeObserver(StateObserver o) {
-        activeSource.removeObserver(o);
+        activePlayer.removeObserver(o);
     }
 
     @Override
     public void registerObserver(RecordObserver o) {
-        activeSource.registerObserver(o);
+        activePlayer.registerObserver(o);
     }
 
     public void removeObserver(RecordObserver o) {
-        activeSource.removeObserver(o);
+        activePlayer.removeObserver(o);
     }
 
     /**
@@ -378,13 +397,13 @@ public class MusicSystem extends ElectricalDevice implements MusicSystemInterfac
     }
 
     @Override
-    public LinkedList<MusicPlayer> getSources() {
-        return new LinkedList(sources);
+    public LinkedList<MusicPlayerInterface> getPlayers() {
+        return new LinkedList(players);
     }
 
     @Override
-    public MusicPlayer getSource(String title) {
-        for (MusicPlayer ms : sources) {
+    public MusicPlayerInterface getSource(String title) {
+        for (MusicPlayerInterface ms : players) {
             if (ms.getTitle().equals(title)) {
                 return ms;
             }
@@ -394,50 +413,50 @@ public class MusicSystem extends ElectricalDevice implements MusicSystemInterfac
 
     @Override
     public boolean hasPlay() {
-        return activeSource.hasPlay();
+        return activePlayer.hasPlay();
     }
 
     @Override
     public boolean hasStop() {
-        return activeSource.hasStop();
+        return activePlayer.hasStop();
     }
 
     @Override
     public boolean hasNext() {
-        return activeSource.hasNext();
+        return activePlayer.hasNext();
     }
 
     @Override
     public boolean hasPrevious() {
-        return activeSource.hasPrevious();
+        return activePlayer.hasPrevious();
     }
 
     @Override
     public boolean hasPause() {
-        return activeSource.hasPause();
+        return activePlayer.hasPause();
     }
 
     @Override
     public boolean hasTracks() {
-        return activeSource.hasTracks();
+        return activePlayer.hasTracks();
     }
 
     @Override
     public boolean hasCurrentTime() {
-        return activeSource.hasCurrentTime();
+        return activePlayer.hasCurrentTime();
     }
 
     public void setMusicSystemState(MusicSystemState state) {
-        activeSource.setMusicSystemState(state);
+        activePlayer.setMusicSystemState(state);
     }
 
     @Override
     public void registerObserver(TrackTimeObserver o) {
-        activeSource.registerObserver(o);
+        activePlayer.registerObserver(o);
     }
 
     public void removeObserver(TrackTimeObserver o) {
-        activeSource.removeObserver(o);
+        activePlayer.removeObserver(o);
     }
 
     /**
@@ -450,15 +469,70 @@ public class MusicSystem extends ElectricalDevice implements MusicSystemInterfac
 
     @Override
     public void registerObserver(VolumeObserver o) {
-        activeSource.registerObserver(o);
+        activePlayer.registerObserver(o);
     }
 
     public void removeObserver(VolumeObserver o) {
-        activeSource.removeObserver(o);
+        activePlayer.removeObserver(o);
     }
 
     @Override
     public void registerObserver(ServerPoolObserver o) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public String getMusicSystemName() {
+        return musicSystemName;
+    }
+
+    @Override
+    public String getLocation() {
+        return location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
+    }
+
+    /**
+     * @return the onOffSwitch
+     */
+    public boolean isOnOffSwitch() {
+        return onOffSwitch;
+    }
+
+    /**
+     * @param onOffSwitch the onOffSwitch to set
+     */
+    public void setOnOffSwitch(boolean onOffSwitch) {
+        if (onOffSwitch == true & this.isPower() == false) {
+            System.out.println(System.currentTimeMillis() + "Bitte erst für Strom sorgen. Gerät kann nicht eingeschaltet werden.");
+        } else {
+            this.onOffSwitch = onOffSwitch;
+            System.out.println(System.currentTimeMillis() + this.getMusicSystemName() + " Gerät ist " + (power ? "an." : "aus."));
+        }
+    }
+
+    /**
+     * @return the power
+     */
+    public boolean isPower() {
+        return power;
+    }
+
+    /**
+     * @param power the power to set
+     */
+    public void setPower(boolean power) {
+        this.power = power;
+        System.out.println(System.currentTimeMillis() + this.getMusicSystemName() + " Strom ist " + (power ? "an." : "aus."));
+    }
+
+    /**
+     * @param musicSystemName the name to set
+     */
+    public void setMusicSystemName(String musicSystemName) {
+        this.musicSystemName = musicSystemName;
     }
 }

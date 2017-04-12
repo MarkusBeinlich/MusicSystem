@@ -14,7 +14,7 @@ import java.util.*;
  *
  * @author Markus Beinlich
  */
-abstract class AbstractMusicPlayer implements MusicPlayer, MusicPlayerPackage, Serializable {
+abstract class AbstractMusicPlayer implements MusicPlayerInterface, MusicPlayerPackage, Serializable {
 
     private String title = this.getClass().getSimpleName();
     private MusicSystemState musicSystemState;
@@ -28,8 +28,25 @@ abstract class AbstractMusicPlayer implements MusicPlayer, MusicPlayerPackage, S
     private int currentTimeTrack;
     private Record record;
     private transient PlayerRun cdRun;
-//     private final transient static DatabaseConnection dbc = new DatabaseConnection();
-//    private RecordCollection rc;
+
+    @Override
+    public MusicPlayerDto getDto() {
+        MusicPlayerDto musicPlayerDto = new MusicPlayerDto();
+        musicPlayerDto.title = this.title;
+        musicPlayerDto.musicSystemState = this.musicSystemState;
+        musicPlayerDto.volume = this.volume;
+        musicPlayerDto.currentTrack = (this.currentTrack == null)? null : this.currentTrack.getDto();
+        musicPlayerDto.currentTimeTrack = this.currentTimeTrack;
+        musicPlayerDto.record = this.record.getDto();
+        musicPlayerDto.hasPlay = hasPlay();
+        musicPlayerDto.hasStop = hasStop();
+        musicPlayerDto.hasNext = hasNext();
+        musicPlayerDto.hasPause = hasPause();
+        musicPlayerDto.hasPrevious = hasPrevious();
+        musicPlayerDto.hasTracks = hasTracks();
+        musicPlayerDto.hasCurrentTime = hasCurrentTime();
+        return musicPlayerDto;
+    }
 
     /**
      *
@@ -81,7 +98,7 @@ abstract class AbstractMusicPlayer implements MusicPlayer, MusicPlayerPackage, S
      */
     @Override
     public void play() {
-        System.out.println(System.currentTimeMillis() + this.getTitle() + ": " + getRecord().getTitle() 
+        System.out.println(System.currentTimeMillis() + this.getTitle() + ": " + getRecord().getTitle()
                 + " Track: " + getCurrentTrack().getTitle() + " wird abgespielt. Volume: " + getVolume());
         //cdRun muss nur gestartet werden, wenn noch kein Instanz läuft.
         if (cdRun == null || cdRun.getState() == Thread.State.TERMINATED) {
@@ -111,11 +128,11 @@ abstract class AbstractMusicPlayer implements MusicPlayer, MusicPlayerPackage, S
         //if (cdIterator.hasNext()) {
         int index = getRecord().getTracks().indexOf(getCurrentTrack());
         if (getRecord().getTracks().size() > (1 + index)) {
-            setCurrentTrack(getRecord().getTracks().get(index + 1));
+            setCurrentTrack((PlayListComponent)getRecord().getTracks().get(index + 1));
             System.out.println(System.currentTimeMillis() + "Record: " + getRecord().getTitle() + " Track: " + getCurrentTrack().getTitle() + " wird abgespielt.");
         } else {
             setMusicSystemState(MusicSystemState.STOP);
-            setCurrentTrack(getRecord().getTracks().get(0));
+            setCurrentTrack((PlayListComponent)getRecord().getTracks().get(0));
             System.out.println(System.currentTimeMillis() + "Record: " + getRecord().getTitle() + "beendet.");
         }
     }
@@ -203,8 +220,8 @@ abstract class AbstractMusicPlayer implements MusicPlayer, MusicPlayerPackage, S
         stop();
         this.record = record;
         //
-        if (record != null && record.getTracks().size()>0) {
-            setCurrentTrack(record.getTracks().get(0));
+        if (record != null && record.getTracks().size() > 0) {
+            setCurrentTrack((PlayListComponent)record.getTracks().get(0));
         }
         notifyRecordObservers();
     }
@@ -258,7 +275,7 @@ abstract class AbstractMusicPlayer implements MusicPlayer, MusicPlayerPackage, S
             }
         }
     }
-    
+
     public void notifyVolumeObservers() {
         if (volumeObservers != null) {
             for (int i = 0; i < volumeObservers.size(); i++) {
@@ -290,6 +307,7 @@ abstract class AbstractMusicPlayer implements MusicPlayer, MusicPlayerPackage, S
             trackTimeObservers.remove(i);
         }
     }
+
     @Override
     public void registerObserver(VolumeObserver o) {
         if (volumeObservers.contains(o) == false) {
@@ -451,7 +469,7 @@ abstract class AbstractMusicPlayer implements MusicPlayer, MusicPlayerPackage, S
         if (getClass() != obj.getClass()) {
             return false;
         }
-        final MusicPlayer other = (MusicPlayer) obj;
+        final MusicPlayerInterface other = (MusicPlayerInterface) obj;
         return this.title.equals(other.getTitle());
     }
 

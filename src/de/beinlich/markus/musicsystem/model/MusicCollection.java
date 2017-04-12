@@ -35,33 +35,35 @@ public class MusicCollection implements MusicCollectionInterface, Serializable {
                 throw new NoSuchElementException("Unbekanntes Format:" + format);
         }
     }
+    
+      public MusicCollectionDto getMusicCollectionDto() {
+        MusicCollectionDto musicCollectionDto = new MusicCollectionDto();
+        musicCollectionDto.records = new ArrayList<>();
+        for (Record record : records) {
+            musicCollectionDto.records.add(record.getDto());
+        }
+        return musicCollectionDto;
+    }
 
-    public Record getRecord() {
+    @Override
+    public RecordInterface getRecord() {
         return records.get(0);
     }
 
-    /**
-     *
-     * @param record
-     */
+
+    @Override
     public void addRecord(Record record) {
         records.add(record);
     }
 
-    /**
-     *
-     * @param i
-     * @return
-     */
-    public Record getRecord(int i) {
+
+    @Override
+    public RecordInterface getRecord(int i) {
         return records.get(i);
     }
 
-    /**
-     *
-     * @return
-     */
-    public List<Record> getRecords() {
+    @Override
+    public List<RecordInterface> getRecords() {
         return Collections.unmodifiableList(records);
     }
 

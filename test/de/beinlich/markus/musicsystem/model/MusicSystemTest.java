@@ -44,9 +44,9 @@ public class MusicSystemTest implements VolumeObserver, TrackTimeObserver, Track
     public void setUp() {
 
         testRecord = new Record("testTitle", "testArtist");
-        testRecord.addTrack(new Track("testTrack1", 11, 1, ""));
-        testRecord.addTrack(new Track("testTrack2", 12, 2, ""));
-        testRecord.addTrack(new Track("testTrack3", 13, 3, ""));
+        testRecord.addTrack((PlayListComponentInterface) new Track("testTrack1", 11, 1, ""));
+        testRecord.addTrack((PlayListComponentInterface) new Track("testTrack2", 12, 2, ""));
+        testRecord.addTrack((PlayListComponentInterface) new Track("testTrack3", 13, 3, ""));
         musicSystem = MusicSystem.getInstance(null);
         musicSystem.setRecord(testRecord);
         musicSystem.registerObserver((VolumeObserver) this);
@@ -178,7 +178,7 @@ public class MusicSystemTest implements VolumeObserver, TrackTimeObserver, Track
     public void testPrevious2() {
         System.out.println("previous");
         MusicSystem instance = musicSystem;
-        PlayListComponent oldTrack = instance.getCurrentTrack();
+        PlayListComponentInterface oldTrack = instance.getCurrentTrack();
         instance.next();
         instance.previous();
         assertEquals(oldTrack, instance.getCurrentTrack());
@@ -188,7 +188,7 @@ public class MusicSystemTest implements VolumeObserver, TrackTimeObserver, Track
     public void testPrevious3() {
         System.out.println("previous");
         MusicSystem instance = musicSystem;
-        PlayListComponent oldTrack = instance.getCurrentTrack();
+        PlayListComponentInterface oldTrack = instance.getCurrentTrack();
         instance.next();
         instance.next();
         instance.previous();
@@ -202,7 +202,7 @@ public class MusicSystemTest implements VolumeObserver, TrackTimeObserver, Track
     public void testNext() {
         System.out.println("next");
         MusicSystem instance = musicSystem;
-        PlayListComponent oldTrack = instance.getCurrentTrack();
+        PlayListComponentInterface oldTrack = instance.getCurrentTrack();
         instance.next();
         assertNotEquals(oldTrack, instance.getCurrentTrack());
     }
@@ -284,18 +284,18 @@ public class MusicSystemTest implements VolumeObserver, TrackTimeObserver, Track
      */
     @Test
     public void testSetCurrentTrack() {
-        PlayListComponent track = musicSystem.getRecord().getTracks().get(0);
+        PlayListComponentInterface track = musicSystem.getRecord().getTracks().get(0);
         MusicSystem instance = musicSystem;
         int anzTrackObserverCalls = updateTrack;
-        instance.setCurrentTrack(track);
+        instance.setCurrentTrack((PlayListComponent) track);
         assertEquals(anzTrackObserverCalls + 1, updateTrack);
     }
 
     @Test
     public void testSetCurrentTrack1() {
-        PlayListComponent track = musicSystem.getRecord().getTracks().get(0);
+        PlayListComponentInterface track = musicSystem.getRecord().getTracks().get(0);
         MusicSystem instance = musicSystem;
-        instance.setCurrentTrack(track);
+        instance.setCurrentTrack((PlayListComponent) track);
         assertEquals(track, instance.getCurrentTrack());
     }
 
@@ -463,10 +463,10 @@ public class MusicSystemTest implements VolumeObserver, TrackTimeObserver, Track
     public void testGetSources() {
         System.out.println("getSources");
         MusicSystem instance = musicSystem;
-        int anzSources = instance.getSources().size();
-        LinkedList<MusicPlayer> result = instance.getSources();
+        int anzSources = instance.getPlayers().size();
+        LinkedList<MusicPlayerInterface> result = instance.getPlayers();
         result.remove();
-        assertEquals(anzSources, instance.getSources().size());
+        assertEquals(anzSources, instance.getPlayers().size());
     }
 
     /**
@@ -561,7 +561,7 @@ public class MusicSystemTest implements VolumeObserver, TrackTimeObserver, Track
         System.out.println("getName");
         MusicSystem instance = musicSystem;
         String expResult = "HiFi-Anlage";
-        String result = instance.getName();
+        String result = instance.getMusicSystemName();
         assertEquals(expResult, result);
     }
 

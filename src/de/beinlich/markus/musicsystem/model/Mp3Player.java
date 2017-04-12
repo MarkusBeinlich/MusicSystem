@@ -86,7 +86,7 @@ class Mp3Player extends AbstractMusicPlayer {
     public void stop() {
 
         if (getRecord() != null && getRecord().getTracks().size()>0) {
-            setCurrentTrack(getRecord().getTracks().get(0));
+            setCurrentTrack((PlayListComponent)getRecord().getTracks().get(0));
         }
         if (mp3Player != null) {
             mp3Player.stop();
@@ -115,7 +115,7 @@ class Mp3Player extends AbstractMusicPlayer {
         //setCurrentTrack((getRecord().getTracks().length + getCurrentTrack() - 1) % getRecord().getTracks().length);
         int index = getRecord().getTracks().indexOf(getCurrentTrack());
         if (index > 0) {
-            setCurrentTrack(getRecord().getTracks().get(index - 1));
+            setCurrentTrack((PlayListComponent)getRecord().getTracks().get(index - 1));
         }
         System.out.println(System.currentTimeMillis() + "Mp3: " + getRecord().getTitle() + " Track: " + getCurrentTrack().getTitle() + " wird abgespielt.");
     }

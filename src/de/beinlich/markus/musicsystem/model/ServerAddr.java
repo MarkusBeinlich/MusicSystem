@@ -24,6 +24,7 @@ public class ServerAddr implements Serializable {
         this.name = name;
         this.activ = activ;
     }
+    
 
     /**
      * @return the activ
