@@ -8,7 +8,7 @@ import java.util.*;
  *
  * @author Markus Beinlich
  */
-public class Record implements RecordInterface, Serializable {
+public class Record implements RecordInterface {
 
     private String title;
     private String artist;

@@ -421,11 +421,7 @@ abstract class AbstractMusicPlayer implements MusicPlayerInterface, MusicPlayerP
 
     @Override
     public String toString() {
-        String st = (getCurrentTrack() == null) ? " nix" : getCurrentTrack().getTitle();
-        return "\n" + title; // this.getClass().getSimpleName()
-//                + "\nStatus: " + this.getState()
-//                + "\nCD: " + record.getTitle()
-//                + "\nTrack: " + st;
+        return "\n" + title; 
     }
 
     /**

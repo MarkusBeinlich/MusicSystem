@@ -11,7 +11,7 @@ import java.io.Serializable;
  *
  * @author Markus Beinlich
  */
-public abstract class PlayListComponent implements PlayListComponentInterface, Serializable {
+public abstract class PlayListComponent implements PlayListComponentInterface {
 
     private String title;
     private int playingTime;

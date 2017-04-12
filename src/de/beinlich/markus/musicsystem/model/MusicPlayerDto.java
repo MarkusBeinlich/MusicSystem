@@ -7,7 +7,9 @@ import java.util.*;
  *
  * @author Markus Beinlich
  */
-public class MusicPlayerDto implements Serializable {
+public class MusicPlayerDto implements MusicPlayerInterface, Serializable {
+
+    private static final long serialVersionUID = 4622961481684284456L;
 
     public String title;
     public MusicSystemState musicSystemState;
@@ -22,4 +24,20 @@ public class MusicPlayerDto implements Serializable {
     public boolean hasPrevious;
     public boolean hasTracks;
     public boolean hasCurrentTime;
+
+    @Override
+    public String getTitle() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public MusicPlayerDto getDto() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+    
+    @Override
+    public String toString() {
+        return "\n" + title; 
+    }
+    
 }

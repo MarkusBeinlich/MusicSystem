@@ -13,6 +13,8 @@ import java.io.Serializable;
  */
 public class ServerAddr implements Serializable {
 
+    private static final long serialVersionUID = -7396694931458806220L;
+
     private int port;
     private String server_ip;
     private boolean activ = false;

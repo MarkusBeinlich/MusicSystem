@@ -5,8 +5,6 @@
  */
 package de.beinlich.markus.musicsystem.model;
 
-import de.beinlich.markus.musicsystem.model.ServerAddr;
-import de.beinlich.markus.musicsystem.model.*;
 import java.io.*;
 import java.util.*;
 import java.util.logging.*;
@@ -16,6 +14,8 @@ import java.util.logging.*;
  * @author Markus Beinlich
  */
 public class ServerPool implements Serializable {
+
+    private static final long serialVersionUID = 5923335649688352457L;
 
     protected static ServerPool uniqueInstance;
     private Map<String, ServerAddr> servers;

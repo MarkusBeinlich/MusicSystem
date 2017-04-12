@@ -6,14 +6,13 @@
 package de.beinlich.markus.musicsystem.model;
 
 import de.beinlich.markus.musicsystem.model.db.DatabaseConnection;
-import java.io.Serializable;
 import java.util.*;
 
 /**
  *
  * @author Markus
  */
-public class MusicCollection implements MusicCollectionInterface, Serializable {
+public class MusicCollection implements MusicCollectionInterface {
 
     protected transient static DatabaseConnection dbc = new DatabaseConnection();
     protected List<Record> records;
