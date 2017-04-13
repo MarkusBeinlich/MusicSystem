@@ -333,8 +333,8 @@ public class MusicSystem implements MusicSystemInterface {
     }
 
     @Override
-    public void setCurrentTrack(PlayListComponent track) {
-        activePlayer.setCurrentTrack(track);
+    public void setCurrentTrack(PlayListComponentInterface track) {
+        activePlayer.setCurrentTrack((PlayListComponent)track);
     }
 
     @Override

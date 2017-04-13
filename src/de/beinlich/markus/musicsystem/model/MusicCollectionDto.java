@@ -43,4 +43,9 @@ public class MusicCollectionDto implements MusicCollectionInterface, Serializabl
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
+    @Override
+    public RecordInterface getRecordById(int rid) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
 }

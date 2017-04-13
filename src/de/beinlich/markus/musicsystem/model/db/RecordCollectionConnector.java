@@ -68,7 +68,7 @@ public class RecordCollectionConnector {
         int uid = 0;
         String sql = "SELECT * FROM `radio` ";
         System.out.println(System.currentTimeMillis() + "-----------------readRadios");
-        rec = new de.beinlich.markus.musicsystem.model.Record("Radios", "");
+        rec = new de.beinlich.markus.musicsystem.model.Record(-1, "Radios", "", null);
         try {
             ResultSet resultSet = statement.executeQuery(sql);
             while (resultSet.next()) {
@@ -109,6 +109,7 @@ public class RecordCollectionConnector {
                 if (rid != resultSet.getInt("rid")) {
                     rid = resultSet.getInt("rid");
                     rec = new de.beinlich.markus.musicsystem.model.Record(
+                            rid,
                             resultSet.getString("title"),
                             resultSet.getString("artist"),
                             resultSet.getBytes("cover")
@@ -148,6 +149,7 @@ public class RecordCollectionConnector {
                 if (rid != resultSet.getInt("rid")) {
                     rid = resultSet.getInt("rid");
                     rec = new de.beinlich.markus.musicsystem.model.Record(
+                            rid, 
                             resultSet.getString("title"),
                             resultSet.getString("artist"),
                             resultSet.getBytes("cover")

@@ -49,7 +49,7 @@ public interface MusicSystemInterface {
 
     void setVolume(double volume);
 
-    void setCurrentTrack(PlayListComponent track);
+    void setCurrentTrack(PlayListComponentInterface track);
 
     void setActiveSource(MusicPlayerInterface activeSource) throws IllegaleSourceException;
 

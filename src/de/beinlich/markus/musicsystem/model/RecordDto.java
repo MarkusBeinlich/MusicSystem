@@ -11,6 +11,7 @@ public class RecordDto implements RecordInterface, Serializable {
 
     private static final long serialVersionUID = -5271344418912579109L;
 
+    public int rid;
     public String title;
     public String artist;
     public String medium;

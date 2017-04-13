@@ -22,6 +22,8 @@ public interface MusicCollectionInterface {
     void addRecord(Record record);
 
     RecordInterface getRecord(int i);
+    
+    RecordInterface getRecordById(int rid);
 
     void registerObserver(MusicCollectionObserver o);
 

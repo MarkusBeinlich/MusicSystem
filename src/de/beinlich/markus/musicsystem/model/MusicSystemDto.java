@@ -110,7 +110,7 @@ public class MusicSystemDto implements MusicSystemInterface, Serializable {
     }
 
     @Override
-    public void setCurrentTrack(PlayListComponent track) {
+    public void setCurrentTrack(PlayListComponentInterface track) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 

@@ -49,6 +49,15 @@ public class MusicCollection implements MusicCollectionInterface {
         return records.get(0);
     }
 
+    @Override
+    public RecordInterface getRecordById(int rid) {
+        for(Record record: records){
+            if (record.getRid() == rid){
+                return record;
+            }
+        }
+        return records.get(0);
+    }
 
     @Override
     public void addRecord(Record record) {

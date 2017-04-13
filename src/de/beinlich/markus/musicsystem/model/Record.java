@@ -10,6 +10,7 @@ import java.util.*;
  */
 public class Record implements RecordInterface {
 
+    private int rid;
     private String title;
     private String artist;
     private String medium;
@@ -32,15 +33,17 @@ public class Record implements RecordInterface {
     }
 
     public Record(String title, String artist) {
-        this(title, artist, null);
+        this(0, title, artist, null);
     }
+    
 
     /**
      *
      * @param title
      * @param artist
      */
-    public Record(String title, String artist, byte[] cover) {
+    public Record(int rid, String title, String artist, byte[] cover) {
+        this.rid = rid;
         this.title = title;
         this.artist = artist;
         this.cover = cover;
@@ -49,6 +52,7 @@ public class Record implements RecordInterface {
 
     public RecordDto getDto() {
         RecordDto recordDto = new RecordDto();
+        recordDto.rid = this.getRid();
         recordDto.title = this.title;
         recordDto.artist = this.artist;
         recordDto.medium = this.medium;
@@ -59,7 +63,7 @@ public class Record implements RecordInterface {
         }
         return recordDto;
     }
-
+    
     /**
      * @return title
      */
@@ -161,6 +165,13 @@ public class Record implements RecordInterface {
      */
     public void setCover(byte[] cover) {
         this.cover = cover;
+    }
+
+    /**
+     * @return the rid
+     */
+    public int getRid() {
+        return rid;
     }
 
 }
