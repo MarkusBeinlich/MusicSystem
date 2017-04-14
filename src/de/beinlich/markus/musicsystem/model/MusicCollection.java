@@ -26,7 +26,7 @@ public class MusicCollection implements MusicCollectionInterface {
                 return CdCollection.getInstance();
             case "Mp3Player":
                 return Mp3Collection.getInstance();
-            case "Record":
+            case "RecordPlayer":
                 return RecordCollection.getInstance();
             case "Radio":
                 return RadioStationCollection.getInstance();

@@ -12,11 +12,11 @@ import jdk.nashorn.api.scripting.*;
  * beispielsweise die Lautstärke geregelt werden. Als Musik-Quelle dienen eine
  * oder mehrere MusicPlayer.
  *
- * Eine dieser MusicPlayer ist die activeSource. Die Methoden zur Steuerung der
- * Musikwiedergabe (Play, Next, ...) beziehen sich auf die activeSource.
+ * Eine dieser MusicPlayer ist der activePlayer. Die Methoden zur Steuerung der
+ * Musikwiedergabe (Play, Next, ...) beziehen sich auf die activePlayer.
  *
  * Die Klasse stellt mehrere Observable Verfügung: 1. MusicPlayerObserver: Es
- * werden alle Observer informiert, wenn sich die activeSource ändert. 2.
+ * werden alle Observer informiert, wenn sich die activePlayer ändert. 2.
  * RecordObserver: Es werden alle Observer informiert, wenn sich der aktuelle
  * Record ändert. 3. TrackObserver: Es werden alle Observer informiert, wenn
  * sich der aktuelle Track ändert. 4. TrackTimeObserver: Es werden alle Observer
@@ -154,22 +154,22 @@ public class MusicSystem implements MusicSystemInterface {
                     case "CdPlayer":
                         CdPlayer cdPlayer = new CdPlayer();
                         cdPlayer.setTitle((msSl.hasMember("title")) ? (String) msSl.getMember("title") : "CD");
-                        this.addSource(cdPlayer);
+                        this.addPlayer(cdPlayer);
                         break;
                     case "Mp3Player":
                         Mp3Player mp3Player = new Mp3Player();
                         mp3Player.setTitle((msSl.hasMember("title")) ? (String) msSl.getMember("title") : "Mp3");
-                        this.addSource(mp3Player);
+                        this.addPlayer(mp3Player);
                         break;
                     case "RecordPlayer":
                         RecordPlayer recordPlayer = new RecordPlayer();
                         recordPlayer.setTitle((msSl.hasMember("title")) ? (String) msSl.getMember("title") : "Plattenspieler");
-                        this.addSource(recordPlayer);
+                        this.addPlayer(recordPlayer);
                         break;
                     case "Radio":
                         Radio radio = new Radio();
                         radio.setTitle((msSl.hasMember("title")) ? (String) msSl.getMember("title") : "Radio");
-                        this.addSource(radio);
+                        this.addPlayer(radio);
                         break;
                     default:
                         System.out.println(System.currentTimeMillis() + "Unbekannter type" + (String) msSl.getMember("type"));
@@ -177,8 +177,8 @@ public class MusicSystem implements MusicSystemInterface {
             }
         }
         try {
-            this.setActiveSource(this.getPlayers().getFirst());
-        } catch (IllegaleSourceException ex) {
+            this.setActivePlayer(this.getPlayers().getFirst());
+        } catch (IllegalePlayerException ex) {
             System.out.println(System.currentTimeMillis() + "Gerät kann nicht verwendet werden. Fehler: " + ex.getMessage());
         }
 
@@ -229,7 +229,7 @@ public class MusicSystem implements MusicSystemInterface {
     public void play() {
         boolean ok = true;
         if (activePlayer == null) {
-            System.out.println(System.currentTimeMillis() + "Sie müssen erst mit 'setActiveSource(???) eine Music-Quelle angeben.");
+            System.out.println(System.currentTimeMillis() + "Sie müssen erst mit 'setActivePlayer(???) eine Music-Quelle angeben.");
             ok = false;
         }
         if (this.isPower() == false) {
@@ -265,39 +265,28 @@ public class MusicSystem implements MusicSystemInterface {
         activePlayer.next();
     }
 
-    /**
-     * @return the activeSource
-     */
     @Override
     public MusicPlayerInterface getActivePlayer() {
         return (MusicPlayerInterface) activePlayer;
     }
 
-    /**
-     * @param activeSource the activeSource to set
-     * @throws de.beinlich.markus.musicsystem.model.IllegaleSourceException
-     */
     @Override
-    public void setActiveSource(MusicPlayerInterface activeSource) throws IllegaleSourceException {
-        //prüfen, ob die zu aktivierende Source zu den vorhandenen Sourcen gehört
-        if (-1 == getPlayers().indexOf(activeSource)) {
-            throw new IllegaleSourceException("Source " + activeSource + " is not part of sources: " + getPlayers());
+    public void setActivePlayer(MusicPlayerInterface activePlayer) throws IllegalePlayerException {
+        //prüfen, ob der zu aktivierende Player zu den vorhandenen Playern gehört
+        if (-1 == getPlayers().indexOf(activePlayer)) {
+            throw new IllegalePlayerException("Player " + activePlayer + " is not part of Players: " + getPlayers());
         }
-        //prüfen, ob es bereits eine aktive Source gibt und diese gegebenfalls stoppen
+        //prüfen, ob es bereits einen aktiven Player gibt und diese gegebenfalls stoppen
         if (this.activePlayer != null) {
             this.activePlayer.stop();
         }
-        this.activePlayer = (AbstractMusicPlayer) activeSource;
+        this.activePlayer = (AbstractMusicPlayer) activePlayer;
 
         notifyMusicPlayerObservers();
     }
 
-    /**
-     * @param source the activeSource to set
-     */
-    private void addSource(MusicPlayerInterface source) {
-//        source.stop();
-        players.add(source);
+    private void addPlayer(MusicPlayerInterface player) {
+        players.add(player);
         notifyMusicPlayerObservers();
     }
 
@@ -402,10 +391,10 @@ public class MusicSystem implements MusicSystemInterface {
     }
 
     @Override
-    public MusicPlayerInterface getSource(String title) {
-        for (MusicPlayerInterface ms : players) {
-            if (ms.getTitle().equals(title)) {
-                return ms;
+    public MusicPlayerInterface getPlayer(String title) {
+        for (MusicPlayerInterface mp : players) {
+            if (mp.getTitle().equals(title)) {
+                return mp;
             }
         }
         return null;

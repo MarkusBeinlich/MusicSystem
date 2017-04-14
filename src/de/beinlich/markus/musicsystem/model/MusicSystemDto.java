@@ -50,7 +50,7 @@ public class MusicSystemDto implements MusicSystemInterface, Serializable {
     }
 
     @Override
-    public MusicPlayerInterface getSource(String title) {
+    public MusicPlayerInterface getPlayer(String title) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
@@ -115,7 +115,7 @@ public class MusicSystemDto implements MusicSystemInterface, Serializable {
     }
 
     @Override
-    public void setActiveSource(MusicPlayerInterface activeSource) throws IllegaleSourceException {
+    public void setActivePlayer(MusicPlayerInterface activePlayer) throws IllegalePlayerException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 

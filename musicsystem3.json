@@ -1,0 +1,13 @@
+musicsystem =
+        { 
+            "name": "Küchenradio2",
+            "location": "Küche",
+            "server_ip": "127.0.0.1",
+            "port": "50003",
+            "musicplayers": [
+                {
+                    "type": "Mp3Player",
+                    "title": "Mp3-Player"
+                }
+            ]
+        }

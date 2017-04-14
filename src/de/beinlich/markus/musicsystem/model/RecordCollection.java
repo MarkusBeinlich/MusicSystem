@@ -14,10 +14,7 @@ import java.util.*;
  */
 class RecordCollection extends MusicCollection {
     protected static RecordCollection uniqueInstance;
-     public final static String MUSIC_SOURCE = "RecordPlayer";
-    /**
-     *
-     */
+
     private RecordCollection () {
         super();
         RecordCollectionConnector rcc = new RecordCollectionConnector(dbc);

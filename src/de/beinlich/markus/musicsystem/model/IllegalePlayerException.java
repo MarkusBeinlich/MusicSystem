@@ -9,19 +9,19 @@ package de.beinlich.markus.musicsystem.model;
  *
  * @author Markus Beinlich
  */
-public class IllegaleSourceException extends Exception {
+public class IllegalePlayerException extends Exception {
 
     /**
      *
      */
-    public IllegaleSourceException() {
+    public IllegalePlayerException() {
     }
 
     /**
      *
      * @param message
      */
-    public IllegaleSourceException(String message) {
+    public IllegalePlayerException(String message) {
         super(message);
     }
 
@@ -30,7 +30,7 @@ public class IllegaleSourceException extends Exception {
      * @param message
      * @param cause
      */
-    public IllegaleSourceException(String message, Throwable cause) {
+    public IllegalePlayerException(String message, Throwable cause) {
         super(message, cause);
     }
 
@@ -38,7 +38,7 @@ public class IllegaleSourceException extends Exception {
      *
      * @param cause
      */
-    public IllegaleSourceException(Throwable cause) {
+    public IllegalePlayerException(Throwable cause) {
         super(cause);
     }
 

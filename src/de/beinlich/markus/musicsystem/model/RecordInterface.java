@@ -18,6 +18,8 @@ public interface RecordInterface {
     
     byte[] getCover();
             
-    public List<PlayListComponentInterface> getTracks();
+    List<PlayListComponentInterface> getTracks();
+    
+    PlayListComponentInterface getTrackById(int uid);
 
 }

@@ -103,9 +103,15 @@ public class Record implements RecordInterface {
         return this.artist + " - " + this.getTitle();
     }
 
-    /**
-     * @return the tracks
-     */
+    public PlayListComponentInterface getTrackById(int uid){
+        for (PlayListComponentInterface track: tracks){
+            if (track.getUid() == uid){
+                return track;
+            }
+        }
+        return tracks.get(0);
+    }
+    
     public List<PlayListComponentInterface> getTracks() {
         return Collections.unmodifiableList(tracks);
     }

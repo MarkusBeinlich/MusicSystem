@@ -227,27 +227,7 @@ public class MusicSystemTest implements VolumeObserver, TrackTimeObserver, Track
         assertEquals(testRecord.getTracks().get(0), instance.getCurrentTrack());
     }
 
-    /**
-     * Test of addSource method, of class MusicSystem.
-     */
-//    @Test
-//    public void testAddSource() {
-//        System.out.println("addSource");
-//        MusicPlayer source = hifi.getActiveSource();
-//        MusicSystem instance = hifi;
-//        int anzSources = instance.getSources().size();
-//        instance.addSource(source);
-//        assertEquals(anzSources,    instance.getSources().size());
-//    }
-//    
-//    @Test
-//    public void testAddSource2() {
-//        System.out.println("addSource");
-//        MusicSystem instance = hifi;
-//        int anzSources = instance.getSources().size();
-//        instance.addSource(new CdPlayer());
-//        assertEquals(anzSources+1,    instance.getSources().size());
-//    }
+
     /**
      * Test of toString method, of class MusicSystem.
      */
@@ -457,16 +437,16 @@ public class MusicSystemTest implements VolumeObserver, TrackTimeObserver, Track
     }
 
     /**
-     * Test of getSources method, of class MusicSystem.
+     * Test of getPlayers method, of class MusicSystem.
      */
     @Test
-    public void testGetSources() {
-        System.out.println("getSources");
+    public void testGetPlayers() {
+        System.out.println("getPlayers");
         MusicSystem instance = musicSystem;
-        int anzSources = instance.getPlayers().size();
+        int anzPlayers = instance.getPlayers().size();
         LinkedList<MusicPlayerInterface> result = instance.getPlayers();
         result.remove();
-        assertEquals(anzSources, instance.getPlayers().size());
+        assertEquals(anzPlayers, instance.getPlayers().size());
     }
 
     /**

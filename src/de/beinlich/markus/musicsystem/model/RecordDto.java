@@ -16,7 +16,7 @@ public class RecordDto implements RecordInterface, Serializable {
     public String artist;
     public String medium;
     public byte[] cover;
-    public ArrayList<PlayListComponentDto> tracks;
+    public List<PlayListComponentInterface> tracks;
 
     @Override
     public String getTitle() {
@@ -35,15 +35,20 @@ public class RecordDto implements RecordInterface, Serializable {
 
     @Override
     public List<PlayListComponentInterface> getTracks() {
-        List<PlayListComponentInterface> tracks = new ArrayList<>();
-        for (PlayListComponentDto track : this.tracks) {
-            tracks.add(track);
-        }
+//        List<PlayListComponentInterface> tracks = new ArrayList<>();
+//        for (PlayListComponentDto track : this.tracks) {
+//            tracks.add(track);
+//        }
         return tracks;
     }
 
     @Override
     public String toString() {
         return this.artist + " - " + this.getTitle();
+    }
+
+    @Override
+    public PlayListComponentInterface getTrackById(int uid) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

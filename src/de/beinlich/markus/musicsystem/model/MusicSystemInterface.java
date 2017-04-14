@@ -25,7 +25,7 @@ public interface MusicSystemInterface {
 
     List<MusicPlayerInterface> getPlayers();
 
-    MusicPlayerInterface getSource(String title);
+    MusicPlayerInterface getPlayer(String title);
 
     PlayListComponentInterface getCurrentTrack();
 
@@ -51,7 +51,7 @@ public interface MusicSystemInterface {
 
     void setCurrentTrack(PlayListComponentInterface track);
 
-    void setActiveSource(MusicPlayerInterface activeSource) throws IllegaleSourceException;
+    void setActivePlayer(MusicPlayerInterface activePlayer) throws IllegalePlayerException;
 
     public ServerAddr getServerAddr();
 

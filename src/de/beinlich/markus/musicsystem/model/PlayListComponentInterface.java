@@ -13,6 +13,8 @@ public interface PlayListComponentInterface {
      */
     String getTitle();
     
+    int getUid();
+    
     int getPlayingTime();
     
     PlayListComponentDto getDto();

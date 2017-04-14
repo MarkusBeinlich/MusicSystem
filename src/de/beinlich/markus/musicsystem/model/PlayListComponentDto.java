@@ -35,4 +35,9 @@ public class PlayListComponentDto implements PlayListComponentInterface, Seriali
     public String toString() {
         return this.getTitle() + ": " + this.getPlayingTime() + " sec";
     }
+
+    @Override
+    public int getUid() {
+        return uid;
+    }
 }
