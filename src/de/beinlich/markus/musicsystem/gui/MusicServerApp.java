@@ -99,7 +99,7 @@ public class MusicServerApp extends javax.swing.JFrame implements VolumeObserver
         comboBoxRecords = new javax.swing.JComboBox<>();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setTitle(musicSystem.getMusicSystemName() + " - " + musicSystem.getLocation());
+        setTitle(musicSystem.getMusicSystemName() + " - " + musicSystem.getLocation()+ " -" + musicSystem.getServerAddr().getServer_ip()+":"+musicSystem.getServerAddr().getPort());
 
         buttonPlay.setText("Play");
         buttonPlay.addActionListener(new java.awt.event.ActionListener() {

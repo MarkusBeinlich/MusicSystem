@@ -67,6 +67,8 @@ public class MusicServer extends SwingWorker<Void, Void> implements VolumeObserv
             for (String server : getServerPool().getServers().keySet()) {
                 ServerAddr sa = getServerPool().getServers().get(server);
                 //kein Verbindungsversuch mit sich selbst.
+                System.out.println("ServerAddr:" + sa);
+                if (true) continue;
                 if (sa.equals(musicSystem.getServerAddr())) {
                     continue;
                 }

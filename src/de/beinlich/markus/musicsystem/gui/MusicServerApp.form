@@ -8,7 +8,7 @@
   <Properties>
     <Property name="defaultCloseOperation" type="int" value="3"/>
     <Property name="title" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-      <Connection code="musicSystem.getMusicSystemName() + &quot; - &quot; + musicSystem.getLocation()" type="code"/>
+      <Connection code="musicSystem.getMusicSystemName() + &quot; - &quot; + musicSystem.getLocation()+ &quot; -&quot; + musicSystem.getServerAddr().getServer_ip()+&quot;:&quot;+musicSystem.getServerAddr().getPort()" type="code"/>
     </Property>
   </Properties>
   <SyntheticProperties>

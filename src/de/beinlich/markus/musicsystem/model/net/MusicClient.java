@@ -57,6 +57,7 @@ public class MusicClient extends SwingWorker<Void, Void> implements MusicSystemI
     private int trackTime;
     private ClientInit clientInit;
     private static String clientName;
+    private int ipCounter = 1;
 
     public MusicClient(String clientName) {
 //        this.mca = mca;
@@ -81,11 +82,15 @@ public class MusicClient extends SwingWorker<Void, Void> implements MusicSystemI
             //Verbindungs-Parameter in property-file auslagern
             NetProperties netProperties = new NetProperties();
             System.out.println(System.currentTimeMillis() + "new Socket with " + serverAddr.getServer_ip() + serverAddr.getPort());
-            socket = new Socket(serverAddr.getServer_ip(), serverAddr.getPort());
+//            socket = new Socket("127.0.0.1", serverAddr.getPort());
+//            socket = new Socket(InetAddress.getLocalHost(), serverAddr.getPort());
+            socket = new Socket("192.168.178.30", 50002);
+//            socket = new Socket(serverAddr.getServer_ip(), serverAddr.getPort());
             System.out.println(System.currentTimeMillis() + "socket.connect");
             //socket.connect(socket.getRemoteSocketAddress() , 0);
             // Erzeugung der Kommunikations-Objekte
             ois = new ObjectInputStream(socket.getInputStream());
+            System.out.println(System.currentTimeMillis() + "socket.connect 2");
             oos = new ObjectOutputStream(socket.getOutputStream());
         } catch (ConnectException e) {
             System.out.println(System.currentTimeMillis() + "Error while connecting. " + e.getMessage());
@@ -96,6 +101,7 @@ public class MusicClient extends SwingWorker<Void, Void> implements MusicSystemI
         } catch (IOException e) {
             e.printStackTrace();
         }
+        System.out.println(System.currentTimeMillis() + "socket.connect3");
     }
 
     private void startReaderThread() {
@@ -110,7 +116,7 @@ public class MusicClient extends SwingWorker<Void, Void> implements MusicSystemI
     private void musicSystemObjectRead() {
         Protokoll nachricht;
         ClientInit clientInit;
-
+        System.out.println("musicSystemObjectRead");
         try {
             // Als erstes write den Namen des eigenen Client übergeben!
             oos.writeObject(new Protokoll(ProtokollType.CLIENT_NAME, clientName));
@@ -169,23 +175,46 @@ public class MusicClient extends SwingWorker<Void, Void> implements MusicSystemI
     }
 
     private void tryToReconnect() {
-//        this.disconnect();
-
-        System.out.println(System.currentTimeMillis() + "I will try to reconnect in 10 seconds... (" + this.reconnections + "/10)");
+        InetAddress address = null;
         try {
-            Thread.sleep(10000); //milliseconds
-        } catch (InterruptedException e) {
-        }
+            InetAddress localhost = InetAddress.getLocalHost();
+            byte[] ip = localhost.getAddress();
+            System.out.println("local:" + InetAddress.getLocalHost().getHostAddress());
+            for (; ipCounter <= 254; ipCounter++) {
+                try {
+                    ip[3] = (byte) ipCounter;
+                    address = InetAddress.getByAddress(ip);
 
-        if (this.reconnections < MAX_RECONNECTIONS) {
-            this.reconnections++;
-            this.netzwerkEinrichten(getCurrentServerAddr());
+                    if (address.isReachable(100)) {
+                        System.out.print(address.toString().substring(1) + " is on the network");
+                        ipCounter++;
+                        break;
+//                        currentServerAddr. = address.toString().substring(1);
 
-        } else {
-            System.out.println(System.currentTimeMillis() + "Reconnection failed, exceeded max reconnection tries. Shutting down.");
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return;
+                }
+            }
+//        System.out.println(System.currentTimeMillis() + "I will try to reconnect in 10 seconds... (" + this.reconnections + "/10)");
+//        try {
+//            Thread.sleep(10000); //milliseconds
+//        } catch (InterruptedException e) {
+//        }
+
+            if (this.reconnections < MAX_RECONNECTIONS) {
+                this.reconnections++;
+                this.netzwerkEinrichten(new ServerAddr(currentServerAddr.getPort(), address.toString().substring(1), currentServerAddr.getName(), true));
+                return;
+            } else {
+                System.out.println(System.currentTimeMillis() + "Reconnection failed, exceeded max reconnection tries. Shutting down.");
 //            this.disconnect();
-            System.exit(0);
-            return;
+                System.exit(0);
+                return;
+            }
+        } catch (UnknownHostException ex) {
+            Logger.getLogger(MusicClient.class.getName()).log(Level.SEVERE, null, ex);
         }
 
     }
@@ -223,12 +252,12 @@ public class MusicClient extends SwingWorker<Void, Void> implements MusicSystemI
 
     @Override
     public MusicPlayerInterface getActivePlayer() {
-        return (MusicPlayerInterface)musicPlayer;
+        return (MusicPlayerInterface) musicPlayer;
     }
 
     @Override
     public RecordInterface getRecord() {
-        return (RecordInterface)record;
+        return (RecordInterface) record;
     }
 
     @Override
@@ -250,15 +279,15 @@ public class MusicClient extends SwingWorker<Void, Void> implements MusicSystemI
     @Override
     public List<MusicPlayerInterface> getPlayers() {
         List<MusicPlayerInterface> players = new LinkedList<>();
-        for(MusicPlayerDto player: musicSystem.players) {
-            players.add((MusicPlayerInterface)player);
+        for (MusicPlayerDto player : musicSystem.players) {
+            players.add((MusicPlayerInterface) player);
         }
         return players;
     }
 
     @Override
     public PlayListComponentInterface getCurrentTrack() {
-        return (PlayListComponentInterface)playListComponent;
+        return (PlayListComponentInterface) playListComponent;
     }
 
     @Override
@@ -597,6 +626,7 @@ public class MusicClient extends SwingWorker<Void, Void> implements MusicSystemI
     public MusicSystemDto getDto() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
+
     @Override
     public MusicCollectionDto getMusicCollectionDto() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
@@ -611,7 +641,6 @@ public class MusicClient extends SwingWorker<Void, Void> implements MusicSystemI
     public RecordInterface getRecordById(int rid) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
- 
 
     class EingehendReader implements Runnable {
 

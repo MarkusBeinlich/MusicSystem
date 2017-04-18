@@ -3,7 +3,11 @@
 package de.beinlich.markus.musicsystem.model;
 
 import java.io.*;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.script.*;
 import jdk.nashorn.api.scripting.*;
 
@@ -140,8 +144,12 @@ public class MusicSystem implements MusicSystemInterface {
         if (obj.hasMember("port")) {
             port = Integer.parseInt((String) obj.getMember("port"));
         }
-        if (obj.hasMember("server_ip")) {
-            server_ip = (String) obj.getMember("server_ip");
+//        if (obj.hasMember("server_ip")) {
+        //            server_ip = (String) obj.getMember("server_ip");
+        try {
+            server_ip = InetAddress.getLocalHost().getHostAddress();
+        } catch (UnknownHostException ex) {
+            Logger.getLogger(MusicSystem.class.getName()).log(Level.SEVERE, null, ex);
         }
         this.serverAddr = new ServerAddr(port, server_ip, this.getMusicSystemName(), true);
         this.setPower(true);
@@ -313,7 +321,7 @@ public class MusicSystem implements MusicSystemInterface {
 
     @Override
     public PlayListComponentInterface getCurrentTrack() {
-        return (PlayListComponentInterface)activePlayer.getCurrentTrack();
+        return (PlayListComponentInterface) activePlayer.getCurrentTrack();
     }
 
     @Override
@@ -323,14 +331,13 @@ public class MusicSystem implements MusicSystemInterface {
 
     @Override
     public void setCurrentTrack(PlayListComponentInterface track) {
-        activePlayer.setCurrentTrack((PlayListComponent)track);
+        activePlayer.setCurrentTrack((PlayListComponent) track);
     }
 
     @Override
     public void setRecord(Record record) {
         activePlayer.setRecord(record);
     }
-
 
     @Override
     public void registerObserver(TrackObserver o) {
