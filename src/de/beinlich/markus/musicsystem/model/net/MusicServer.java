@@ -62,34 +62,10 @@ public class MusicServer extends SwingWorker<Void, Void> implements VolumeObserv
                 serverSocket = new ServerSocket(Integer.parseInt(netProperties.getProperty("net.port")));
                 System.out.println("Port2: " + netProperties.getProperty("net.port"));
             }
-            //Alle bekannten Server abklappern, ob sie aktiv sind
+
+            new Thread(new ServerFinder()).start();
+
             Socket socket;
-            for (String server : getServerPool().getServers().keySet()) {
-                ServerAddr sa = getServerPool().getServers().get(server);
-                //kein Verbindungsversuch mit sich selbst.
-                System.out.println("ServerAddr:" + sa);
-                if (true) continue;
-                if (sa.equals(musicSystem.getServerAddr())) {
-                    continue;
-                }
-                try {
-                    // Erzeugung eines Socket-Objekts
-                    //                  Rechner (Adresse / Name)
-                    //                  |            Port
-
-                    System.out.println(System.currentTimeMillis() + "Suche:" + sa);
-                    socket = new Socket(sa.getServer_ip(), sa.getPort());  // "loca lhost" // "www.google.com"
-                    System.out.println(System.currentTimeMillis() + "socket.connect");
-                    new Thread(new ClientHandler(socket, this, true)).start();
-                } catch (ConnectException e) {
-                    System.out.println(System.currentTimeMillis() + "Error while connecting. " + e.getMessage());
-                } catch (SocketTimeoutException e) {
-                    System.out.println(System.currentTimeMillis() + "Connection: " + e.getMessage() + ".");
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-
             while (true) {
                 System.out.println(System.currentTimeMillis() + "Server lauscht!");
 
@@ -144,6 +120,66 @@ public class MusicServer extends SwingWorker<Void, Void> implements VolumeObserv
             Logger.getLogger(MusicServer.class
                     .getName()).log(Level.SEVERE, null, ex);
         }
+    }
+
+    public class ServerFinder implements Runnable {
+
+        @Override
+        public void run() {
+            //Alle bekannten Server abklappern, ob sie aktiv sind
+            Socket socket;
+            for (String server : getServerPool().getServers().keySet()) {
+                ServerAddr sa = getServerPool().getServers().get(server);
+                //kein Verbindungsversuch mit sich selbst.
+                System.out.println("ServerAddr:" + sa);
+                if (true) {
+                    continue;
+                }
+                if (sa.equals(musicSystem.getServerAddr())) {
+                    continue;
+                }
+                try {
+                    // Erzeugung eines Socket-Objekts
+                    //                  Rechner (Adresse / Name)
+                    //                  |            Port
+
+                    System.out.println(System.currentTimeMillis() + "Suche:" + sa);
+                    socket = new Socket(sa.getServer_ip(), sa.getPort());  // "loca lhost" // "www.google.com"
+                    System.out.println(System.currentTimeMillis() + "socket.connect");
+                    new Thread(new ClientHandler(socket, MusicServer.this, true)).start();
+                } catch (ConnectException e) {
+                    System.out.println(System.currentTimeMillis() + "Error while connecting. " + e.getMessage());
+                } catch (SocketTimeoutException e) {
+                    System.out.println(System.currentTimeMillis() + "Connection: " + e.getMessage() + ".");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            //Nach weiteren aktiven IP-Adresse im Netz suchen 
+            InetAddress localhost;
+            try {
+                localhost = InetAddress.getLocalHost();
+            } catch (UnknownHostException ex) {
+                Logger.getLogger(MusicServer.class.getName()).log(Level.SEVERE, null, ex);
+                return;
+            }
+            byte[] ip = localhost.getAddress();
+            String output;
+
+            for (int i = 1; i <= 254; i++) {
+                try {
+                    ip[3] = (byte) i;
+                    InetAddress address = InetAddress.getByAddress(ip);
+
+                    if (address.isReachable(100)) {
+                        output = address.toString().substring(1);
+                        System.out.println(output + " is on the network");
+                    }
+                } catch (Exception e) {
+                }
+            }
+        }
+
     }
 
     public class ClientHandler implements Runnable {
