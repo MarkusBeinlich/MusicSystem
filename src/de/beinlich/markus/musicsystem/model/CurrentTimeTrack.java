@@ -14,6 +14,7 @@ import java.util.logging.*;
  */
 public class CurrentTimeTrack implements Serializable{
     private static int currentTimeTrack;
+    private static final long serialVersionUID = -1440063734497675377L;
     
     public CurrentTimeTrack(int currentTimeTrack){
         CurrentTimeTrack.currentTimeTrack = currentTimeTrack;

@@ -11,7 +11,7 @@ public class MusicCollectionDto implements MusicCollectionInterface, Serializabl
 
     private static final long serialVersionUID = 6399011378220532131L;
 
-    public List<RecordDto> records;
+    public List<RecordInterface> records;
 
     @Override
     public MusicCollectionDto getMusicCollectionDto() {
@@ -25,7 +25,7 @@ public class MusicCollectionDto implements MusicCollectionInterface, Serializabl
 
     @Override
     public List<RecordInterface> getRecords() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return (List<RecordInterface>)records;
     }
 
     @Override

@@ -20,7 +20,7 @@ public class MusicSystemController implements MusicSystemControllerInterface {
     MusicSystemInterface musicSystem;
     MusicServerApp musicServerApp;
 
-    public MusicSystemController(MusicSystem musicSystem) {
+    public MusicSystemController(MusicSystemInterface musicSystem) {
         this.musicSystem = musicSystem;
         try {
             musicServerApp = MusicServerApp.startMusicServerApp(this, musicSystem);

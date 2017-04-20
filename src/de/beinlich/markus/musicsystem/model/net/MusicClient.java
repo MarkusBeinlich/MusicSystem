@@ -84,8 +84,9 @@ public class MusicClient extends SwingWorker<Void, Void> implements MusicSystemI
             System.out.println(System.currentTimeMillis() + "new Socket with " + serverAddr.getServer_ip() + serverAddr.getPort());
 //            socket = new Socket("127.0.0.1", serverAddr.getPort());
 //            socket = new Socket(InetAddress.getLocalHost(), serverAddr.getPort());
-            socket = new Socket("192.168.178.30", 50002);
-//            socket = new Socket(serverAddr.getServer_ip(), serverAddr.getPort());
+//            socket = new Socket("192.168.178.38", 50001);
+            if (serverAddr.getServer_ip().equals("127.0.0.1")) throw new ConnectException();
+            socket = new Socket(serverAddr.getServer_ip(), serverAddr.getPort());
             System.out.println(System.currentTimeMillis() + "socket.connect");
             //socket.connect(socket.getRemoteSocketAddress() , 0);
             // Erzeugung der Kommunikations-Objekte
@@ -158,17 +159,6 @@ public class MusicClient extends SwingWorker<Void, Void> implements MusicSystemI
         }
     }
 
-//    public void writeCommand(MusicClientCommand mCC) {
-//        System.out.println(System.currentTimeMillis() + "writeCommand:" + mCC.getType() + " new:" + mCC.getNewState() + " old: " + mCC.getOldState());
-//        try {
-//            // einen Befehl an der Server übertragen
-//            oos.writeObject(new Protokoll(ProtokollType.CLIENT_COMMAND, mCC));
-//            oos.flush();
-//        } catch (IOException ex) {
-//            Logger.getLogger(MusicClientCommand.class.getName()).log(Level.SEVERE, null, ex);
-//        }
-//
-//    }
     @Override
     protected Void doInBackground() throws Exception {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
@@ -192,26 +182,19 @@ public class MusicClient extends SwingWorker<Void, Void> implements MusicSystemI
 //                        currentServerAddr. = address.toString().substring(1);
 
                     }
-                } catch (Exception e) {
+                } catch (IOException e) {
                     e.printStackTrace();
                     return;
                 }
             }
-//        System.out.println(System.currentTimeMillis() + "I will try to reconnect in 10 seconds... (" + this.reconnections + "/10)");
-//        try {
-//            Thread.sleep(10000); //milliseconds
-//        } catch (InterruptedException e) {
-//        }
 
             if (this.reconnections < MAX_RECONNECTIONS) {
                 this.reconnections++;
-                this.netzwerkEinrichten(new ServerAddr(currentServerAddr.getPort(), address.toString().substring(1), currentServerAddr.getName(), true));
-                return;
+                this.netzwerkEinrichten(new ServerAddr(50001, address.toString().substring(1), currentServerAddr.getName(), true));
             } else {
                 System.out.println(System.currentTimeMillis() + "Reconnection failed, exceeded max reconnection tries. Shutting down.");
 //            this.disconnect();
                 System.exit(0);
-                return;
             }
         } catch (UnknownHostException ex) {
             Logger.getLogger(MusicClient.class.getName()).log(Level.SEVERE, null, ex);
@@ -731,7 +714,7 @@ public class MusicClient extends SwingWorker<Void, Void> implements MusicSystemI
                     }
                 }
 
-            } catch (Exception ex) {
+            } catch (IOException | ClassNotFoundException ex) {
                 System.out.println(System.currentTimeMillis() + "CLIENT: Verbindung zum Server beendet - " + ex);
                 ex.printStackTrace();
             }

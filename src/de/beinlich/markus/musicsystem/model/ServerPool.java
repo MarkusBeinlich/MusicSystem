@@ -1,6 +1,8 @@
 package de.beinlich.markus.musicsystem.model;
 
 import java.io.*;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.*;
 import java.util.logging.*;
 
@@ -21,10 +23,14 @@ public class ServerPool implements Serializable {
         File serverFile = new File(fileNameServerPool);
         if (!serverFile.exists()) {
             servers = new TreeMap<>();
-            //Der Standard-Server muss immer eingetragen sein, damit sich die Server
-            //gegenseitig finden können
-            addServer("HiFi-Anlage", new ServerAddr(50001, "127.0.0.1", "HiFi-Anlage",true));
+            try {
+                //Der Standard-Server muss immer eingetragen sein, damit sich die Server
+                //gegenseitig finden können
+                addServer("HiFi-Anlage", new ServerAddr(50001, InetAddress.getLocalHost().getHostAddress(), "HiFi-Anlage",true));
 //            addServer(musicNetComponent.getMusicSystem().getName(), musicNetComponent.getMusicSystem().getServerAddr());
+            } catch (UnknownHostException ex) {
+                Logger.getLogger(ServerPool.class.getName()).log(Level.SEVERE, null, ex);
+            }
         } else {
             try {
                 FileInputStream fis = new FileInputStream(serverFile);

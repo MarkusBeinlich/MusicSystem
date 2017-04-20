@@ -409,7 +409,7 @@ public class MusicClientApp extends javax.swing.JFrame implements VolumeObserver
     private javax.swing.JButton buttonPrevious;
     private javax.swing.JButton buttonStop;
     private javax.swing.JComboBox<MusicPlayerInterface> comboBoxPlayer;
-    private javax.swing.JComboBox<RecordDto> comboBoxRecords;
+    private javax.swing.JComboBox<RecordInterface> comboBoxRecords;
     private javax.swing.JComboBox<String> comboBoxServer;
     private javax.swing.JLabel jCover;
     private javax.swing.JLabel jLabel1;
@@ -428,27 +428,27 @@ public class MusicClientApp extends javax.swing.JFrame implements VolumeObserver
     private javax.swing.JSlider sliderVolume;
     // End of variables declaration//GEN-END:variables
 
-    class RecordComboBoxModel extends DefaultComboBoxModel<RecordDto> {
+    class RecordComboBoxModel extends DefaultComboBoxModel<RecordInterface> {
 
-        private MusicCollectionDto rc;
+        private MusicCollectionInterface rc;
 
-        public RecordComboBoxModel(MusicCollectionDto rc) {
+        public RecordComboBoxModel(MusicCollectionInterface rc) {
             this.rc = rc;
             this.setSelectedItem(musicSystem.getRecord());
         }
 
-        public void replaceRecordCollection(MusicCollectionDto rc) {
+        public void replaceRecordCollection(MusicCollectionInterface rc) {
             this.rc = rc;
         }
 
         @Override
         public int getSize() {
-            return rc.records.size();
+            return rc.getRecords().size();
         }
 
         @Override
-        public RecordDto getElementAt(int index) {
-            return rc.records.get(index);
+        public RecordInterface getElementAt(int index) {
+            return rc.getRecords().get(index);
         }
 
     }

@@ -2,7 +2,6 @@ musicsystem =
         { 
             "name": "Küchenradio",
             "location": "Küche",
-            "server_ip": "127.0.0.1",
             "port": "50002",
             "musicplayers": [
                 {

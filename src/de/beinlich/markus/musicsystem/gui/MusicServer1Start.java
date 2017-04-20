@@ -15,7 +15,7 @@ import de.beinlich.markus.musicsystem.model.*;
 public class MusicServer1Start {
 
     public static void main(String args[]) {
-        MusicSystem musicSystem = MusicSystem.getInstance("musicsystem");
+        MusicSystemInterface musicSystem = MusicSystem.getInstance("musicsystem");
         MusicSystemControllerInterface musicSystemController = new MusicSystemController(musicSystem);
     }
 }

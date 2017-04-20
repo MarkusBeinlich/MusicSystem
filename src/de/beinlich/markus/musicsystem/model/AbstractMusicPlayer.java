@@ -5,16 +5,13 @@
  */
 package de.beinlich.markus.musicsystem.model;
 
-import de.beinlich.markus.musicsystem.model.db.RecordCollectionConnector;
-import de.beinlich.markus.musicsystem.model.db.DatabaseConnection;
-import java.io.Serializable;
 import java.util.*;
 
 /**
  *
  * @author Markus Beinlich
  */
-abstract class AbstractMusicPlayer implements MusicPlayerInterface, MusicPlayerPackage, Serializable {
+abstract class AbstractMusicPlayer implements MusicPlayerInterface, MusicPlayerPackage {
 
     private String title = this.getClass().getSimpleName();
     private MusicSystemState musicSystemState;

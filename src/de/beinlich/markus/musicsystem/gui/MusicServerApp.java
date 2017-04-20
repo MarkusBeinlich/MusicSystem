@@ -30,9 +30,8 @@ public class MusicServerApp extends javax.swing.JFrame implements VolumeObserver
     /**
      * Creates new form Player
      */
-    private MusicServerApp(MusicSystemControllerInterface musicSystemController, MusicSystem musicSystem) {
-        //MusicServer - Daten laden und Model anlegen aber Server noch nicht starten
-        //das darf erst nach der Swing-Komponente erfolgen.
+    private MusicServerApp(MusicSystemControllerInterface musicSystemController, MusicSystemInterface musicSystem) {
+        //MusicServer - Daten laden und Model anlegen 
         musicServer = new MusicServer(musicSystemController, musicSystem);
         musicServer.execute();
 
@@ -58,7 +57,7 @@ public class MusicServerApp extends javax.swing.JFrame implements VolumeObserver
 
     }
 
-    public static MusicServerApp startMusicServerApp(MusicSystemControllerInterface musicSystemController, MusicSystem musicSystem) throws InterruptedException, InvocationTargetException {
+    public static MusicServerApp startMusicServerApp(MusicSystemControllerInterface musicSystemController, MusicSystemInterface musicSystem) throws InterruptedException, InvocationTargetException {
         EventQueue.invokeAndWait(() -> {
             uniqueInstance = new MusicServerApp(musicSystemController, musicSystem);
         });
@@ -418,13 +417,13 @@ public class MusicServerApp extends javax.swing.JFrame implements VolumeObserver
 
     class TrackListModel extends DefaultListModel<PlayListComponentInterface> {
 
-        private Record record;
+        private RecordInterface record;
 
-        public TrackListModel(Record record) {
+        public TrackListModel(RecordInterface record) {
             this.record = record;
         }
 
-        public void replaceRecord(Record record) {
+        public void replaceRecord(RecordInterface record) {
             this.record = record;
             this.fireContentsChanged(this, 0, getSize() - 1);
         }
@@ -446,14 +445,14 @@ public class MusicServerApp extends javax.swing.JFrame implements VolumeObserver
 
     class RecordComboBoxModel extends DefaultComboBoxModel<RecordInterface> {
 
-        private MusicCollection rc;
+        private MusicCollectionInterface rc;
 
-        public RecordComboBoxModel(MusicCollection rc) {
+        public RecordComboBoxModel(MusicCollectionInterface rc) {
             this.rc = rc;
-            this.setSelectedItem(rc.getRecord(0));
+            this.setSelectedItem(musicSystem.getRecord());
         }
 
-        public void replaceRecordCollection(MusicCollection rc) {
+        public void replaceRecordCollection(MusicCollectionInterface rc) {
             this.rc = rc;
         }
 
@@ -570,7 +569,8 @@ public class MusicServerApp extends javax.swing.JFrame implements VolumeObserver
                     //Achtung - hier muss noch die passende MusicColleciton geladen werden.
                     //Das ist keine tolle Lösung mir fällt nichts besseres ein.
                     //Ich will vermeiden, das die MusicCollection an der MusicPlayer hängt.
-                    rcm.replaceRecordCollection(MusicCollection.getInstance(musicSystem.getActivePlayer().getClass().getSimpleName()));
+//                    rcm.replaceRecordCollection(MusicCollection.getInstance(musicSystem.getActivePlayer().getClass().getSimpleName()));
+                    rcm.replaceRecordCollection(musicServer.getMusicCollection());
                     //Selektierten Record auf ersten Wert der Liste setzen
                     //Das darf erst erfolgen, wenn die neue RecordCollection gesetzt ist.
                     comboBoxRecords.setSelectedIndex(0);
