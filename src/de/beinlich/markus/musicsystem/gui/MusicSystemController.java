@@ -76,7 +76,7 @@ public class MusicSystemController implements MusicSystemControllerInterface {
     public void setActivePlayer(String selectedPlayer) {
         try {
             musicSystem.setActivePlayer(musicSystem.getPlayer(selectedPlayer));
-            MusicCollectionInterface musicCollection = MusicCollection.getInstance(musicSystem.getActivePlayer().getClass().getSimpleName());
+            MusicCollectionInterface musicCollection = MusicCollectionCreator.getInstance(musicSystem.getActivePlayer().getClass().getSimpleName());
             musicSystem.setRecord((Record) musicCollection.getRecord(0));
         } catch (IllegalePlayerException ex) {
             Logger.getLogger(MusicServerApp.class.getName()).log(Level.SEVERE, null, ex);
@@ -85,7 +85,7 @@ public class MusicSystemController implements MusicSystemControllerInterface {
 
     @Override
     public void setRecord(RecordInterface record) {
-        MusicCollectionInterface musicCollection = MusicCollection.getInstance(musicSystem.getActivePlayer().getClass().getSimpleName());
+        MusicCollectionInterface musicCollection = MusicCollectionCreator.getInstance(musicSystem.getActivePlayer().getClass().getSimpleName());
         if (record instanceof Record) {
             musicSystem.setRecord((Record) record);
         } else if (record instanceof RecordDto) {

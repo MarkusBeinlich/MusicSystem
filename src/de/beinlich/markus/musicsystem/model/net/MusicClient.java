@@ -42,7 +42,7 @@ public class MusicClient extends SwingWorker<Void, Void> implements MusicSystemI
     private ObjectInputStream ois;
     private ObjectOutputStream oos;
 
-    private static final int MAX_RECONNECTIONS = 10;
+    private static final int MAX_RECONNECTIONS = 100;
     private int reconnections = 0;
 
     private MusicSystemDto musicSystem;

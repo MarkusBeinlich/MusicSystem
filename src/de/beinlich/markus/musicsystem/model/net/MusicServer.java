@@ -29,7 +29,7 @@ public class MusicServer extends SwingWorker<Void, Void> implements VolumeObserv
         //Den Namen des MusicServer auf den gleichen wert wie beim MusicSystem setzen.
         //Der Name wird für den Dateinamen des ServerPool verwendet.
         name = musicSystem.getMusicSystemName();
-        musicCollection = MusicCollection.getInstance(musicSystem.getActivePlayer().getClass().getSimpleName());
+        musicCollection = MusicCollectionCreator.getInstance(musicSystem.getActivePlayer().getClass().getSimpleName());
         musicSystem.setRecord((Record) musicCollection.getRecord());
         serverPool = ServerPool.getInstance(name);
         
@@ -418,7 +418,7 @@ public class MusicServer extends SwingWorker<Void, Void> implements VolumeObserv
         //Achtung - hier muss noch die passende MusicColleciton geladen werden.
         //Das ist keine tolle Lösung mir fällt nichts besseres ein.
         //Ich will vermeiden, das die MusicCollection an der MusicPlayer hängt.
-        musicCollection = MusicCollection.getInstance(musicSystem.getActivePlayer().getClass().getSimpleName());
+        musicCollection = MusicCollectionCreator.getInstance(musicSystem.getActivePlayer().getClass().getSimpleName());
         
         try {
             talkToAll(new Protokoll(MUSIC_COLLECTION_DTO, this.getMusicCollection().getMusicCollectionDto()));

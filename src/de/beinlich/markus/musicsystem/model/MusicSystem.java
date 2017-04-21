@@ -28,7 +28,7 @@ import jdk.nashorn.api.scripting.*;
  *
  * @author Markus Beinlich
  */
-public class MusicSystem implements MusicSystemInterface {
+class MusicSystem implements MusicSystemInterface {
 
     private static MusicSystem uniqueInstance;
     private String musicSystemName;
