@@ -32,7 +32,7 @@ abstract class AbstractMusicPlayer implements MusicPlayerInterface, MusicPlayerP
         musicPlayerDto.title = this.title;
         musicPlayerDto.musicSystemState = this.musicSystemState;
         musicPlayerDto.volume = this.volume;
-        musicPlayerDto.currentTrack = (this.currentTrack == null)? null : this.currentTrack.getDto();
+        musicPlayerDto.currentTrack = (this.currentTrack == null) ? null : this.currentTrack.getDto();
         musicPlayerDto.currentTimeTrack = this.currentTimeTrack;
         musicPlayerDto.record = this.record.getDto();
         musicPlayerDto.hasPlay = hasPlay();
@@ -125,11 +125,11 @@ abstract class AbstractMusicPlayer implements MusicPlayerInterface, MusicPlayerP
         //if (cdIterator.hasNext()) {
         int index = getRecord().getTracks().indexOf(getCurrentTrack());
         if (getRecord().getTracks().size() > (1 + index)) {
-            setCurrentTrack((PlayListComponent)getRecord().getTracks().get(index + 1));
+            setCurrentTrack((PlayListComponent) getRecord().getTracks().get(index + 1));
             System.out.println(System.currentTimeMillis() + "Record: " + getRecord().getTitle() + " Track: " + getCurrentTrack().getTitle() + " wird abgespielt.");
         } else {
             setMusicSystemState(MusicSystemState.STOP);
-            setCurrentTrack((PlayListComponent)getRecord().getTracks().get(0));
+            setCurrentTrack((PlayListComponent) getRecord().getTracks().get(0));
             System.out.println(System.currentTimeMillis() + "Record: " + getRecord().getTitle() + "beendet.");
         }
     }
@@ -218,22 +218,20 @@ abstract class AbstractMusicPlayer implements MusicPlayerInterface, MusicPlayerP
         this.record = record;
         //
         if (record != null && record.getTracks().size() > 0) {
-            setCurrentTrack((PlayListComponent)record.getTracks().get(0));
+            setCurrentTrack((PlayListComponent) record.getTracks().get(0));
         }
         notifyRecordObservers();
     }
 
-    /**
-     * @return the currentTimeTrack
-     */
     @Override
     public int getCurrentTimeTrack() {
         return currentTimeTrack;
     }
 
-    /**
-     * @param currentTimeTrack the currentTimeTrack to set
-     */
+    void seek(int currentTimeTrack) {
+        setCurrentTimeTrack(currentTimeTrack);
+    }
+
     void setCurrentTimeTrack(int currentTimeTrack) {
         this.currentTimeTrack = currentTimeTrack;
         notifyTrackTimeObservers();
@@ -418,7 +416,7 @@ abstract class AbstractMusicPlayer implements MusicPlayerInterface, MusicPlayerP
 
     @Override
     public String toString() {
-        return "\n" + title; 
+        return "\n" + title;
     }
 
     /**

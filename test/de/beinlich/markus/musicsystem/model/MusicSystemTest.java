@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package de.beinlich.markus.musicsystem.model;
 
 import java.util.*;
@@ -22,12 +17,12 @@ public class MusicSystemTest implements VolumeObserver, TrackTimeObserver, Track
 
     private MusicSystem musicSystem;
     private Record testRecord;
-    private int updateVolume = 0;
-    private int updateState = 0;
-    private int updateTrackTime = 0;
-    private int updateTrack = 0;
-    private int updateRecord = 0;
-    private int updateMusicPlayer = 0;
+    private int updateVolume = 1;
+    private int updateState = 2;
+    private int updateTrackTime = 3;
+    private int updateTrack = 4;
+    private int updateRecord = 5;
+    private int updateMusicPlayer = 6;
 
     public MusicSystemTest() {
     }
@@ -347,7 +342,7 @@ public class MusicSystemTest implements VolumeObserver, TrackTimeObserver, Track
         VolumeObserver o = (VolumeObserver) this;
         MusicSystem instance = musicSystem;
         instance.registerObserver(o);
-        int anzVolumeObserverCalls = updateRecord;
+        int anzVolumeObserverCalls = updateVolume;
         ((AbstractMusicPlayer) instance.getActivePlayer()).notifyVolumeObservers();
         assertEquals(anzVolumeObserverCalls + 1, updateVolume);
     }
@@ -357,7 +352,7 @@ public class MusicSystemTest implements VolumeObserver, TrackTimeObserver, Track
         VolumeObserver o = (VolumeObserver) this;
         MusicSystem instance = musicSystem;
         instance.removeObserver(o);
-        int anzVolumeObserverCalls = updateRecord;
+        int anzVolumeObserverCalls = updateVolume;
         ((AbstractMusicPlayer) instance.getActivePlayer()).notifyVolumeObservers();
         assertEquals(anzVolumeObserverCalls, updateVolume);
     }

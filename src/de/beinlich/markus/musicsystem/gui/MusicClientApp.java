@@ -139,6 +139,11 @@ public class MusicClientApp extends javax.swing.JFrame implements VolumeObserver
 
         sliderProgress.setToolTipText("");
         sliderProgress.setValue(0);
+        sliderProgress.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                sliderProgressStateChanged(evt);
+            }
+        });
 
         jLabel2.setText("Current Track: ");
 
@@ -383,6 +388,13 @@ public class MusicClientApp extends javax.swing.JFrame implements VolumeObserver
         }
     }//GEN-LAST:event_comboBoxServerItemStateChanged
 
+    private void sliderProgressStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_sliderProgressStateChanged
+        if (sliderProgress.getValue() != musicSystem.getCurrentTimeTrack()) {
+            System.out.println("sliderProgressStateChanged: " + sliderProgress.getValue() + " - " + musicSystem.getCurrentTimeTrack());
+            musicSystemController.seek(sliderProgress.getValue());
+        }
+    }//GEN-LAST:event_sliderProgressStateChanged
+
     /**
      * @param args the command line arguments
      */
@@ -531,16 +543,19 @@ public class MusicClientApp extends javax.swing.JFrame implements VolumeObserver
 
     }
 
+    @Override
     public void updateServerPool() {
         System.out.println(System.currentTimeMillis() + "updateServerPool ");
         sercm.replaceServers(musicClient.getServerPool().getActiveServers());
 //        comboBoxServer.setSelectedItem(musicSystem.getServerAddr().getName());
     }
 
+    @Override
     public void updateMusicCollection() {
         rcm.replaceRecordCollection(musicClient.getMusicCollection());
     }
 
+    @Override
     public void updateMusicPlayer() {
         System.out.println(System.currentTimeMillis() + "UpdateMusicPlayer: " + musicSystem.getActivePlayer());
 
@@ -557,7 +572,7 @@ public class MusicClientApp extends javax.swing.JFrame implements VolumeObserver
                 comboBoxPlayer.setSelectedIndex(i);
                 break;
             }
-        }       
+        }
 
         System.out.println(System.currentTimeMillis() + "UpdateMusicPlayerEnd: " + comboBoxPlayer.getSelectedItem());
     }
@@ -573,7 +588,7 @@ public class MusicClientApp extends javax.swing.JFrame implements VolumeObserver
                 comboBoxRecords.setSelectedIndex(i);
                 break;
             }
-        }   
+        }
         System.out.println(System.currentTimeMillis() + "setRecord: " + musicSystem.getRecord());
 
         tlm.replaceRecord(musicSystem.getRecord());
@@ -597,6 +612,7 @@ public class MusicClientApp extends javax.swing.JFrame implements VolumeObserver
             }
             labelCurrentTrack.setText(musicSystem.getCurrentTrack().getTitle() + " : " + musicSystem.getCurrentTrack().getPlayingTime());
             sliderProgress.setMinimum(0);
+            sliderProgress.setValue(0);
             sliderProgress.setMaximum(musicSystem.getCurrentTrack().getPlayingTime());
         }
         updateTrackTime();

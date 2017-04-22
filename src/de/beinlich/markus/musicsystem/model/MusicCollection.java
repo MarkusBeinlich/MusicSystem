@@ -7,8 +7,11 @@ class MusicCollection implements MusicCollectionInterface {
 
     protected transient static DatabaseConnection dbc = new DatabaseConnection();
     protected List<Record> records;
-
+    private transient final ArrayList<MusicCollectionObserver> musicCollectionObservers = new ArrayList<>();
+    private String format;
+    
     protected MusicCollection() {
+        this.records = new ArrayList<>();
     }
 
     public static synchronized MusicCollection getInstance(String format) {
@@ -25,8 +28,8 @@ class MusicCollection implements MusicCollectionInterface {
                 throw new NoSuchElementException("Unbekanntes Format:" + format);
         }
     }
-    
-      public MusicCollectionDto getMusicCollectionDto() {
+
+    public MusicCollectionDto getMusicCollectionDto() {
         MusicCollectionDto musicCollectionDto = new MusicCollectionDto();
         musicCollectionDto.records = new ArrayList<>();
         for (Record record : records) {
@@ -42,8 +45,8 @@ class MusicCollection implements MusicCollectionInterface {
 
     @Override
     public RecordInterface getRecordById(int rid) {
-        for(Record record: records){
-            if (record.getRid() == rid){
+        for (Record record : records) {
+            if (record.getRid() == rid) {
                 return record;
             }
         }
@@ -55,7 +58,6 @@ class MusicCollection implements MusicCollectionInterface {
         records.add(record);
     }
 
-
     @Override
     public RecordInterface getRecord(int i) {
         return records.get(i);
@@ -65,10 +67,28 @@ class MusicCollection implements MusicCollectionInterface {
     public List<RecordInterface> getRecords() {
         return Collections.unmodifiableList(records);
     }
-
+    
+    public void notifyMusicCollectionObservers() {
+        System.out.println("notifyMusicCollectionObservers:" + musicCollectionObservers.size() + " - " + this.toString());
+        if (musicCollectionObservers != null) {
+            for (int i = 0; i < musicCollectionObservers.size(); i++) {
+                MusicCollectionObserver observer = (MusicCollectionObserver) musicCollectionObservers.get(i);
+                observer.updateMusicCollection();
+            }
+        }
+    }
     @Override
     public void registerObserver(MusicCollectionObserver o) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        System.out.println("registerObserver(MusicCollectionObserver)" + this.toString());
+        if (musicCollectionObservers.contains(o) == false) {
+            musicCollectionObservers.add(o);
+        }
+    }
+
+    public void setFormat(String format) {
+        System.out.println("setFormat");
+        this.format = format;
+        notifyMusicCollectionObservers();
     }
 
 }

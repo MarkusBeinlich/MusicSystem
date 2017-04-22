@@ -50,6 +50,8 @@ public interface MusicSystemInterface {
     void setVolume(double volume);
 
     void setCurrentTrack(PlayListComponentInterface track);
+    
+    void seek(int currentTimeTrack);
 
     void setActivePlayer(MusicPlayerInterface activePlayer) throws IllegalePlayerException;
 

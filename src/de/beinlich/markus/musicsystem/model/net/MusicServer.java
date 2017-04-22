@@ -8,18 +8,17 @@ import java.util.*;
 import java.util.logging.*;
 import javax.swing.SwingWorker;
 
+public class MusicServer extends SwingWorker<Void, Void> implements VolumeObserver, TrackTimeObserver, TrackObserver, StateObserver, RecordObserver, MusicPlayerObserver, MusicCollectionObserver {
 
-public class MusicServer extends SwingWorker<Void, Void> implements VolumeObserver, TrackTimeObserver, TrackObserver, StateObserver, RecordObserver, MusicPlayerObserver {
-    
     private final List<ObjectOutputStream> clients;
     private final List<ObjectOutputStream> servers;
-    
+
     private final MusicSystemInterface musicSystem; //Model
     private final MusicSystemControllerInterface musicSystemController;
     private MusicCollectionInterface musicCollection;
     private final ServerPool serverPool;
     private final String name;
-    
+
     public MusicServer(MusicSystemControllerInterface musicSystemController, MusicSystemInterface musicSystem) {
 //        this.msa = msa;
         clients = new ArrayList<>();
@@ -32,19 +31,19 @@ public class MusicServer extends SwingWorker<Void, Void> implements VolumeObserv
         musicCollection = MusicCollectionCreator.getInstance(musicSystem.getActivePlayer().getClass().getSimpleName());
         musicSystem.setRecord((Record) musicCollection.getRecord());
         serverPool = ServerPool.getInstance(name);
-        
+
         musicSystem.registerObserver((VolumeObserver) this);
         musicSystem.registerObserver((TrackTimeObserver) this);
         musicSystem.registerObserver((TrackObserver) this);
         musicSystem.registerObserver((StateObserver) this);
         musicSystem.registerObserver((RecordObserver) this);
         musicSystem.registerObserver((MusicPlayerObserver) this);
-        
+        musicCollection.registerObserver((MusicCollectionObserver) this);
     }
-    
+
     @Override
     public Void doInBackground() {
-        
+
         try {
             // windows> netstat -a
 
@@ -60,9 +59,9 @@ public class MusicServer extends SwingWorker<Void, Void> implements VolumeObserv
                 serverSocket = new ServerSocket(Integer.parseInt(netProperties.getProperty("net.port")));
                 System.out.println("Port2: " + netProperties.getProperty("net.port"));
             }
-            
+
             new Thread(new MusicServerFinder()).start();
-            
+
             Socket socket;
             while (true) {
                 System.out.println(System.currentTimeMillis() + "Server lauscht!");
@@ -71,19 +70,19 @@ public class MusicServer extends SwingWorker<Void, Void> implements VolumeObserv
                 socket = serverSocket.accept();  // blockiert!
 
                 new Thread(new ClientHandler(socket, this, false)).start();
-                
+
             }
         } catch (IOException | NumberFormatException ex) {
             System.out.println(ex);
         }
         return null;
     }
-    
+
     @Override
     public void done() {
         System.out.println(System.currentTimeMillis() + "MusicServer done");
     }
-    
+
     private synchronized void talkToAll(Protokoll nachricht) {
         clients.forEach((oos) -> {
             try {
@@ -95,7 +94,7 @@ public class MusicServer extends SwingWorker<Void, Void> implements VolumeObserv
             }
         });
     }
-    
+
     private synchronized void talkToAllServer(Protokoll nachricht) {
         servers.forEach((oos) -> {
             try {
@@ -104,32 +103,32 @@ public class MusicServer extends SwingWorker<Void, Void> implements VolumeObserv
                 System.out.println(System.currentTimeMillis() + "server: geschrieben: " + nachricht + "-" + System.currentTimeMillis());
             } catch (IOException ex) {
                 System.out.println(ex);
-                
+
             }
         });
     }
-    
+
     @Override
     public void updateVolume() {
         System.out.println(System.currentTimeMillis() + "Server - updateVolume");
         try {
             talkToAll(new Protokoll(VOLUME, musicSystem.getVolume()));
-            
+
         } catch (InvalidObjectException ex) {
             Logger.getLogger(MusicServer.class
                     .getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
+
     public class MusicServerFinder implements Runnable {
-        
+
         @Override
         public void run() {
             //Nach weiteren aktiven IP-Adresse im LAN suchen 
             tryAllAddressesOnLan();
-            
+
         }
-        
+
         private void tryAllAddressesOnLan() {
             InetAddress localhost;
             try {
@@ -139,18 +138,18 @@ public class MusicServer extends SwingWorker<Void, Void> implements VolumeObserv
                 return;
             }
             byte[] ip = localhost.getAddress();
-            
+
             for (int i = 1; i <= 254; i++) {
                 try {
                     ip[3] = (byte) i;
                     InetAddress address = InetAddress.getByAddress(ip);
-                    tryAddress(address);  
+                    tryAddress(address);
                 } catch (UnknownHostException e) {
                     Logger.getLogger(MusicServer.class.getName()).log(Level.SEVERE, null, e);
                 }
             }
         }
-        
+
         private void tryAddress(InetAddress address) {
             try {
                 if (address.isReachable(100)) {
@@ -161,13 +160,13 @@ public class MusicServer extends SwingWorker<Void, Void> implements VolumeObserv
                 Logger.getLogger(MusicServer.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-        
+
         private void tryAllPorts(String hostAddress) {
             for (int j = 1; j <= 3; j++) {
                 tryToConnectServer(hostAddress, 50000 + j);
             }
         }
-        
+
         private void tryToConnectServer(String hostAddress, int port) {
             Socket socket;
             try {
@@ -182,18 +181,18 @@ public class MusicServer extends SwingWorker<Void, Void> implements VolumeObserv
                 Logger.getLogger(MusicServer.class.getName()).log(Level.SEVERE, null, e);
             }
         }
-        
+
     }
-    
+
     public class ClientHandler implements Runnable {
-        
+
         private ObjectInputStream ois;
         private ObjectOutputStream oos;
         private String name;
         private MusicServer musicServer;
         private MusicSystemInterface musicSystem;
         private MusicSystemControllerInterface musicSystemController;
-        
+
         public ClientHandler(Socket socket, MusicServer musicServer, boolean isServer) {
             this.musicServer = musicServer;
             this.musicSystem = musicServer.musicSystem;
@@ -212,7 +211,7 @@ public class MusicServer extends SwingWorker<Void, Void> implements VolumeObserv
                 Logger.getLogger(MusicServer.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-        
+
         @Override
         public void run() {
             Object o;
@@ -223,7 +222,7 @@ public class MusicServer extends SwingWorker<Void, Void> implements VolumeObserv
             String musicPlayerTitle;
             MusicPlayerInterface musicPlayer;
             PlayListComponentInterface playListComponent;
-            
+
             try {
                 // Liest als erste Zeile den Namen des Client bzw des Servers
                 o = ois.readObject();
@@ -265,7 +264,7 @@ public class MusicServer extends SwingWorker<Void, Void> implements VolumeObserv
                         System.out.println(System.currentTimeMillis() + "Unbekannte Nachricht:" + protokoll.getProtokollType());
                         throw new NoSuchElementException("Unbekannte Nachricht:" + protokoll.getProtokollType());
                 }
-                
+
                 System.out.println(System.currentTimeMillis() + "Warten auf Nachrichten");
                 while (true) {
 
@@ -302,6 +301,10 @@ public class MusicServer extends SwingWorker<Void, Void> implements VolumeObserv
                         case VOLUME:
                             musicSystemController.setVolume((double) protokoll.getValue());
                             System.out.println(System.currentTimeMillis() + "VOLUME done");
+                            break;
+                        case TRACK_TIME:
+                            musicSystemController.seek((int) protokoll.getValue());
+                            System.out.println(System.currentTimeMillis() + "TRACK_TIME: " + protokoll.getValue());
                             break;
                         case CLIENT_COMMAND_PLAY:
                             if (musicSystem.getMusicSystemState() == (MusicSystemState) protokoll.getValue()) {
@@ -344,46 +347,49 @@ public class MusicServer extends SwingWorker<Void, Void> implements VolumeObserv
         }
     }
 
-    /**
-     *
-     */
+    @Override
+    public void updateMusicCollection() {
+        try {
+            System.out.println(System.currentTimeMillis() + "Server - updateMusicCollection");
+            musicCollection = MusicCollectionCreator.getInstance(musicSystem.getActivePlayer().getClass().getSimpleName());
+            talkToAll(new Protokoll(MUSIC_COLLECTION_DTO, musicCollection.getMusicCollectionDto()));
+        } catch (InvalidObjectException ex) {
+            Logger.getLogger(MusicServer.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
     @Override
     public void updateRecord() {
         try {
             System.out.println(System.currentTimeMillis() + "Server - updateRecord");
-//                       talkToAll(new Protokoll(MUSIC_SYSTEM, this.getMusicSystem()));
             talkToAll(new Protokoll(RECORD_DTO, musicSystem.getRecord().getDto()));
             talkToAll(new Protokoll(STATE, musicSystem.getMusicSystemState()));
-            
         } catch (InvalidObjectException ex) {
             Logger.getLogger(MusicServer.class
                     .getName()).log(Level.SEVERE, null, ex);
         }
     }
 
-    /**
-     *
-     */
     @Override
     public void updateTrack() {
         System.out.println(System.currentTimeMillis() + "Server - updateTrack");
         try {
 //                       talkToAll(new Protokoll(MUSIC_SYSTEM, this.getMusicSystem()));
             talkToAll(new Protokoll(PLAY_LIST_COMPONENT_DTO, musicSystem.getCurrentTrack().getDto()));
-            
+
         } catch (InvalidObjectException ex) {
             Logger.getLogger(MusicServer.class
                     .getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
+
     @Override
     public void updateState() {
         System.out.println(System.currentTimeMillis() + "Server - updateState");
         try {
 //                       talkToAll(new Protokoll(MUSIC_SYSTEM, this.getMusicSystem()));
             talkToAll(new Protokoll(STATE, (MusicSystemState) musicSystem.getMusicSystemState()));
-            
+
         } catch (InvalidObjectException ex) {
             Logger.getLogger(MusicServer.class
                     .getName()).log(Level.SEVERE, null, ex);
@@ -398,13 +404,13 @@ public class MusicServer extends SwingWorker<Void, Void> implements VolumeObserv
         System.out.println(System.currentTimeMillis() + "Server - updateTrackTime");
         try {
             talkToAll(new Protokoll(TRACK_TIME, (Integer) musicSystem.getCurrentTimeTrack()));
-            
+
         } catch (InvalidObjectException ex) {
             Logger.getLogger(MusicServer.class
                     .getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
+
     @Override
     public void updateMusicPlayer() {
         System.out.println(System.currentTimeMillis() + "Server - updateMusicPlayer");
@@ -415,23 +421,12 @@ public class MusicServer extends SwingWorker<Void, Void> implements VolumeObserv
         musicSystem.registerObserver((TrackTimeObserver) this);
         musicSystem.registerObserver((VolumeObserver) this);
         musicSystem.registerObserver((RecordObserver) this);
-        //Achtung - hier muss noch die passende MusicColleciton geladen werden.
-        //Das ist keine tolle Lösung mir fällt nichts besseres ein.
-        //Ich will vermeiden, das die MusicCollection an der MusicPlayer hängt.
         musicCollection = MusicCollectionCreator.getInstance(musicSystem.getActivePlayer().getClass().getSimpleName());
-        
+        musicCollection.registerObserver((MusicCollectionObserver) this);
         try {
-            talkToAll(new Protokoll(MUSIC_COLLECTION_DTO, this.getMusicCollection().getMusicCollectionDto()));
-
-//            talkToAll(new Protokoll(MUSIC_SYSTEM, this.getMusicSystem()));
             talkToAll(new Protokoll(MUSIC_PLAYER_DTO, musicSystem.getActivePlayer().getDto()));
             talkToAll(new Protokoll(RECORD_DTO, musicSystem.getRecord().getDto()));
             talkToAll(new Protokoll(STATE, musicSystem.getMusicSystemState()));
-//            talkToAll(new Protokoll(HAS_NEXT, musicSystem.hasNext()));
-//            talkToAll(new Protokoll(HAS_PREVIOUS, musicSystem.hasPrevious()));
-//            talkToAll(new Protokoll(HAS_PAUSE, musicSystem.hasPause()));
-//            talkToAll(new Protokoll(HAS_TRACKS, musicSystem.hasTracks()));
-//            talkToAll(new Protokoll(HAS_CURRENT_TIME, musicSystem.hasCurrentTime()));
 
         } catch (InvalidObjectException ex) {
             Logger.getLogger(MusicServer.class
@@ -452,9 +447,9 @@ public class MusicServer extends SwingWorker<Void, Void> implements VolumeObserv
     public ServerPool getServerPool() {
         return serverPool;
     }
-    
+
     public String getName() {
         return name;
     }
-    
+
 }

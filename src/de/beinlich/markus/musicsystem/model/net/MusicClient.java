@@ -85,7 +85,9 @@ public class MusicClient extends SwingWorker<Void, Void> implements MusicSystemI
 //            socket = new Socket("127.0.0.1", serverAddr.getPort());
 //            socket = new Socket(InetAddress.getLocalHost(), serverAddr.getPort());
 //            socket = new Socket("192.168.178.38", 50001);
-            if (serverAddr.getServer_ip().equals("127.0.0.1")) throw new ConnectException();
+            if (serverAddr.getServer_ip().equals("127.0.0.1")) {
+                throw new ConnectException();
+            }
             socket = new Socket(serverAddr.getServer_ip(), serverAddr.getPort());
             System.out.println(System.currentTimeMillis() + "socket.connect");
             //socket.connect(socket.getRemoteSocketAddress() , 0);
@@ -361,6 +363,17 @@ public class MusicClient extends SwingWorker<Void, Void> implements MusicSystemI
     }
 
     @Override
+    public void seek(int currentTimeTrack) {
+        try {
+            writeObject(new Protokoll(TRACK_TIME, currentTimeTrack));
+
+        } catch (InvalidObjectException ex) {
+            Logger.getLogger(MusicClient.class
+                    .getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    @Override
     public void setCurrentTrack(PlayListComponentInterface track) {
         try {
             //das Verändern des musicSystem/MusicSystem-Objektes muss vom Model/Server aus erfolgen. Sonst gibt es Rückkoppelungen
@@ -625,6 +638,11 @@ public class MusicClient extends SwingWorker<Void, Void> implements MusicSystemI
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
+    @Override
+    public void setFormat(String format) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
     class EingehendReader implements Runnable {
 
         private final MusicClient musicClient;
@@ -686,6 +704,7 @@ public class MusicClient extends SwingWorker<Void, Void> implements MusicSystemI
                             if (!(playListComponent.equals(musicClient.playListComponent))) {
                                 System.out.println(System.currentTimeMillis() + "TRACK");
                                 musicClient.playListComponent = playListComponent;
+                                musicClient.trackTime = 0;
                                 notifyTrackObservers();
 //                                mca.updatePlayListComponent(playListComponent);
                             }

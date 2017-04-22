@@ -35,6 +35,7 @@ class PlayerRun extends Thread {
                     // dann passt es auch (halbwegs), wenn beim Track-wechsel die Zeit auf 0 gesetzt wurde
                     if (i % 10 == 0){
                         player.setCurrentTimeTrack(player.getCurrentTimeTrack() + 1);
+                        i = player.getCurrentTimeTrack() * 10;
                     }
                     // alle 3 Sekunden die Zeit ausgeben
                     if (i++ % 30 == 0) {

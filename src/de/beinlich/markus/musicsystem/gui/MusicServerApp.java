@@ -13,15 +13,12 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Enumeration;
 import javax.swing.*;
 
-/**
- *
- * @author Markus Beinlich
- */
-public class MusicServerApp extends javax.swing.JFrame implements VolumeObserver, TrackTimeObserver, TrackObserver, StateObserver, RecordObserver, MusicPlayerObserver {
+public class MusicServerApp extends javax.swing.JFrame implements VolumeObserver, TrackTimeObserver, TrackObserver, StateObserver, RecordObserver, MusicPlayerObserver, MusicCollectionObserver {
 
     private static final long serialVersionUID = 5175912086028741494L;
     private static MusicServerApp uniqueInstance;
     private final MusicSystemInterface musicSystem;
+    private MusicCollectionInterface musicCollection;
     private final MusicSystemControllerInterface musicSystemController;
     private final TrackListModel tlm;
     private final RecordComboBoxModel rcm;
@@ -37,6 +34,7 @@ public class MusicServerApp extends javax.swing.JFrame implements VolumeObserver
 
         this.musicSystem = musicSystem;
         this.musicSystemController = musicSystemController;
+        musicCollection = musicServer.getMusicCollection();
 
         musicSystem.registerObserver((VolumeObserver) this);
         musicSystem.registerObserver((TrackTimeObserver) this);
@@ -44,9 +42,10 @@ public class MusicServerApp extends javax.swing.JFrame implements VolumeObserver
         musicSystem.registerObserver((StateObserver) this);
         musicSystem.registerObserver((RecordObserver) this);
         musicSystem.registerObserver((MusicPlayerObserver) this);
+        musicCollection.registerObserver((MusicCollectionObserver) this);
 
         tlm = new TrackListModel(musicSystem.getRecord());
-        rcm = new RecordComboBoxModel(musicServer.getMusicCollection());
+        rcm = new RecordComboBoxModel(musicCollection);
 
         initComponents();
         //RadioButton's für MusicPlayer initialisieren
@@ -181,6 +180,11 @@ public class MusicServerApp extends javax.swing.JFrame implements VolumeObserver
 
         sliderProgress.setToolTipText("");
         sliderProgress.setValue(0);
+        sliderProgress.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                sliderProgressStateChanged(evt);
+            }
+        });
 
         jLabel2.setText("Current Track: ");
 
@@ -389,6 +393,13 @@ public class MusicServerApp extends javax.swing.JFrame implements VolumeObserver
         }
     }//GEN-LAST:event_comboBoxRecordsItemStateChanged
 
+    private void sliderProgressStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_sliderProgressStateChanged
+        if (sliderProgress.getValue() != musicSystem.getCurrentTimeTrack()) {
+            System.out.println("sliderProgressStateChanged: " + sliderProgress.getValue() + " - " + musicSystem.getCurrentTimeTrack());
+            musicSystemController.seek(sliderProgress.getValue());
+        }
+    }//GEN-LAST:event_sliderProgressStateChanged
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.ButtonGroup buttonGroupPlayer;
     private javax.swing.JButton buttonNext;
@@ -518,6 +529,7 @@ public class MusicServerApp extends javax.swing.JFrame implements VolumeObserver
             listCurrentRecord.setSelectedValue(musicSystem.getCurrentTrack(), true);
             labelCurrentTrack.setText(musicSystem.getCurrentTrack().getTitle() + " : " + musicSystem.getCurrentTrack().getPlayingTime());
             sliderProgress.setMinimum(0);
+            sliderProgress.setValue(0);
             sliderProgress.setMaximum(musicSystem.getCurrentTrack().getPlayingTime());
         }
         updateTrackTime();
@@ -538,9 +550,12 @@ public class MusicServerApp extends javax.swing.JFrame implements VolumeObserver
         sliderVolume.setValue((int) musicSystem.getVolume());
     }
 
-    /**
-     *
-     */
+    @Override
+    public void updateMusicCollection() {
+        System.out.println("updateMusicCollection");
+        rcm.replaceRecordCollection(musicServer.getMusicCollection());
+    }
+
     @Override
     public void updateMusicPlayer() {
         int i = 0;
@@ -565,12 +580,9 @@ public class MusicServerApp extends javax.swing.JFrame implements VolumeObserver
                     musicSystem.registerObserver((TrackTimeObserver) this);
                     musicSystem.registerObserver((VolumeObserver) this);
                     musicSystem.registerObserver((RecordObserver) this);
+                    musicCollection = musicServer.getMusicCollection();
+                    musicCollection.registerObserver((MusicCollectionObserver) this);
 
-                    //Achtung - hier muss noch die passende MusicColleciton geladen werden.
-                    //Das ist keine tolle Lösung mir fällt nichts besseres ein.
-                    //Ich will vermeiden, das die MusicCollection an der MusicPlayer hängt.
-//                    rcm.replaceRecordCollection(MusicCollection.getInstance(musicSystem.getActivePlayer().getClass().getSimpleName()));
-                    rcm.replaceRecordCollection(musicServer.getMusicCollection());
                     //Selektierten Record auf ersten Wert der Liste setzen
                     //Das darf erst erfolgen, wenn die neue RecordCollection gesetzt ist.
                     comboBoxRecords.setSelectedIndex(0);

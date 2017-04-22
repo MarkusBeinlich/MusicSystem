@@ -60,6 +60,11 @@ public class MusicSystemController implements MusicSystemControllerInterface {
     public void setVolume(double volume) {
         musicSystem.setVolume(volume);
     }
+    
+    @Override
+    public void seek(int currentTimtTrack) {
+        musicSystem.seek(currentTimtTrack);
+     } 
 
     @Override
     public void setCurrentTrack(PlayListComponentInterface track) {
@@ -74,9 +79,13 @@ public class MusicSystemController implements MusicSystemControllerInterface {
 
     @Override
     public void setActivePlayer(String selectedPlayer) {
+        System.out.println("setActivePlayer");
         try {
             musicSystem.setActivePlayer(musicSystem.getPlayer(selectedPlayer));
+            //Ich brauche die musicCollection nur um mit setFormat den notifyMusicCollectionObservers() - Aufruf anzustossen. 
+            //Das sollte auch eleganter gehen.
             MusicCollectionInterface musicCollection = MusicCollectionCreator.getInstance(musicSystem.getActivePlayer().getClass().getSimpleName());
+            musicCollection.setFormat(musicSystem.getActivePlayer().getClass().getSimpleName());
             musicSystem.setRecord((Record) musicCollection.getRecord(0));
         } catch (IllegalePlayerException ex) {
             Logger.getLogger(MusicServerApp.class.getName()).log(Level.SEVERE, null, ex);

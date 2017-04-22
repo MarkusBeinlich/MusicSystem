@@ -20,6 +20,8 @@ public interface MusicCollectionInterface {
     List<RecordInterface> getRecords();
 
     void addRecord(Record record);
+    
+    void setFormat(String format);
 
     RecordInterface getRecord(int i);
     

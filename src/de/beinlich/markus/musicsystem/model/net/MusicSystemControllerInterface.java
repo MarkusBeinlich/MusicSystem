@@ -25,6 +25,8 @@ public interface MusicSystemControllerInterface {
 
     public void setVolume(double volume);
 
+    void seek(int currentTimtTrack);
+
     public void setCurrentTrack(PlayListComponentInterface track);
 
     public void setActivePlayer(String selectedPlayer);

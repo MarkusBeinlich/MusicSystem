@@ -8,6 +8,7 @@ package de.beinlich.markus.musicsystem.model;
 import de.beinlich.markus.musicsystem.model.db.*;
 import javafx.embed.swing.*;
 import javafx.scene.media.*;
+import javafx.util.Duration;
 
 /**
  *
@@ -104,6 +105,13 @@ class Mp3Player extends AbstractMusicPlayer {
     public void setVolume(double volume) {
         super.setVolume(volume);
         mp3Player.setVolume(volume / 100);
+    }
+    
+    @Override
+    public void seek(int currentTimeTrack ) {
+        System.out.println("MP3Player - seek: " + currentTimeTrack + " - " + this.getCurrentTimeTrack());
+        super.seek(currentTimeTrack);
+        mp3Player.seek(new Duration(currentTimeTrack*1000));
     }
 
     /**

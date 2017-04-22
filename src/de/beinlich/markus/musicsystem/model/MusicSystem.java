@@ -1,4 +1,4 @@
-/*
+ /*
  */
 package de.beinlich.markus.musicsystem.model;
 
@@ -333,6 +333,11 @@ class MusicSystem implements MusicSystemInterface {
     public void setCurrentTrack(PlayListComponentInterface track) {
         activePlayer.setCurrentTrack((PlayListComponent) track);
     }
+    
+    @Override
+    public void seek(int currentTimeTrack) {
+        activePlayer.seek(currentTimeTrack);
+    }
 
     @Override
     public void setRecord(Record record) {
@@ -366,9 +371,6 @@ class MusicSystem implements MusicSystemInterface {
         activePlayer.removeObserver(o);
     }
 
-    /**
-     *
-     */
     public void notifyMusicPlayerObservers() {
         if (musicPlayerObservers != null) {
             for (int i = 0; i < musicPlayerObservers.size(); i++) {
