@@ -38,7 +38,6 @@ public class MusicClientApp extends javax.swing.JFrame implements VolumeObserver
      */
     public MusicClientApp() {
 
-        //MusicClient erzeugen
         musicClient = new MusicClient(clientName);
 
         System.out.println(System.currentTimeMillis() + "**************MusicClient ist aktiv");
@@ -560,6 +559,8 @@ public class MusicClientApp extends javax.swing.JFrame implements VolumeObserver
         System.out.println(System.currentTimeMillis() + "UpdateMusicPlayer: " + musicSystem.getActivePlayer());
 
         //Werte der aktiven MusicPlayer anzeigen
+        buttonPlay.setEnabled(musicSystem.hasPlay());
+        buttonStop.setEnabled(musicSystem.hasStop());
         buttonNext.setEnabled(musicSystem.hasNext());
         buttonPrevious.setEnabled(musicSystem.hasPrevious());
         buttonPause.setEnabled(musicSystem.hasPause());
@@ -619,8 +620,6 @@ public class MusicClientApp extends javax.swing.JFrame implements VolumeObserver
     }
 
     private void doClientInit() {
-
-        System.out.println(System.currentTimeMillis() + "musicSystem ist übergeben:" + musicSystem);
         updateRecord();
         updateServerPool();
         updateMusicCollection();
@@ -646,11 +645,11 @@ public class MusicClientApp extends javax.swing.JFrame implements VolumeObserver
         sliderVolume.setValue((int) musicSystem.getVolume());
     }
 
-    public boolean hasCover() {
+    private boolean hasCover() {
         return (musicSystem.getRecord().getCover() != null);
     }
 
-    public Icon showCover() {
+    private Icon showCover() {
         Icon icon;
         BufferedImage img;
         icon = null;

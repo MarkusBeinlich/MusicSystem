@@ -605,7 +605,7 @@ public class MusicClient extends SwingWorker<Void, Void> implements MusicSystemI
 
     @Override
     public List<RecordInterface> getRecords() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return musicCollection.getRecords();
     }
 
     @Override
@@ -704,7 +704,7 @@ public class MusicClient extends SwingWorker<Void, Void> implements MusicSystemI
                             if (!(playListComponent.equals(musicClient.playListComponent))) {
                                 System.out.println(System.currentTimeMillis() + "TRACK");
                                 musicClient.playListComponent = playListComponent;
-                                musicClient.trackTime = 0;
+                                musicClient.trackTime = 0; 
                                 notifyTrackObservers();
 //                                mca.updatePlayListComponent(playListComponent);
                             }
