@@ -1,16 +1,12 @@
 musicsystem =
         { 
-            "name": "Küchenradio",
+            "name": "Mp3Player",
             "location": "Küche",
             "port": "50002",
             "musicplayers": [
                 {
                     "type": "Mp3Player",
                     "title": "Mp3-Player"
-                },
-                {
-                    "type": "Radio",
-                    "title": "Internet-Radio"
                 }
             ]
         }

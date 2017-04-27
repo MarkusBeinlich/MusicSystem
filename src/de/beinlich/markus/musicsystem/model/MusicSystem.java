@@ -89,6 +89,7 @@ class MusicSystem implements MusicSystemInterface {
 
     public static synchronized MusicSystem getInstance(String name) {
         if (uniqueInstance == null) {
+            SystemName.INSTANCE.setName(name);
             uniqueInstance = new MusicSystem();
             uniqueInstance.readConfiguration(name);
         }

@@ -167,44 +167,63 @@ public class MusicClient extends SwingWorker<Void, Void> implements MusicSystemI
     }
 
     private void tryToReconnect() {
-        InetAddress address = null;
-        try {
-            InetAddress localhost = InetAddress.getLocalHost();
-            byte[] ip = localhost.getAddress();
-            System.out.println("local:" + InetAddress.getLocalHost().getHostAddress());
-            for (; ipCounter <= 254; ipCounter++) {
-                try {
-                    ip[3] = (byte) ipCounter;
-                    address = InetAddress.getByAddress(ip);
-
-                    if (address.isReachable(100)) {
-                        System.out.print(address.toString().substring(1) + " is on the network");
-                        ipCounter++;
-                        break;
-//                        currentServerAddr. = address.toString().substring(1);
-
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    return;
-                }
-            }
-
-            if (this.reconnections < MAX_RECONNECTIONS) {
-                this.reconnections++;
-                this.netzwerkEinrichten(new ServerAddr(50001, address.toString().substring(1), currentServerAddr.getName(), true));
-            } else {
-                System.out.println(System.currentTimeMillis() + "Reconnection failed, exceeded max reconnection tries. Shutting down.");
-//            this.disconnect();
-                System.exit(0);
-            }
-        } catch (UnknownHostException ex) {
-            Logger.getLogger(MusicClient.class.getName()).log(Level.SEVERE, null, ex);
-        }
-
+        tryAllAddressesOnLan();
     }
 
-    public boolean switchToServer(String newServer) {
+    private void tryAllAddressesOnLan() {
+        InetAddress localhost;
+        try {
+            localhost = InetAddress.getLocalHost();
+        } catch (UnknownHostException ex) {
+            Logger.getLogger(MusicServer.class.getName()).log(Level.SEVERE, null, ex);
+            return;
+        }
+        byte[] ip = localhost.getAddress();
+
+        for (int i = 1; i <= 254; i++) {
+            try {
+                ip[3] = (byte) i;
+                InetAddress address = InetAddress.getByAddress(ip);
+                tryAddress(address);
+            } catch (UnknownHostException e) {
+                Logger.getLogger(MusicServer.class.getName()).log(Level.SEVERE, null, e);
+            }
+        }
+    }
+
+    private void tryAddress(InetAddress address) {
+        try {
+            if (address.isReachable(10)) {
+                System.out.println(address.toString().substring(1) + " is on the network");
+                tryAllPorts(address.getHostAddress());
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(MusicServer.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    private void tryAllPorts(String hostAddress) {
+        for (int j = 1; j <= 3; j++) {
+            tryToConnectServer(hostAddress, 50000 + j);
+        }
+    }
+
+    private void tryToConnectServer(String hostAddress, int port) {
+        Socket socket;
+        try {
+            socket = new Socket(hostAddress, port);
+            socket.close();
+            this.netzwerkEinrichten(new ServerAddr(port, hostAddress, currentServerAddr.getName(), true));
+        } catch (ConnectException e) {
+            System.out.println(System.currentTimeMillis() + "Error while connecting. " + e.getMessage());
+        } catch (SocketTimeoutException e) {
+            System.out.println(System.currentTimeMillis() + "Connection: " + e.getMessage() + ".");
+        } catch (IOException e) {
+            Logger.getLogger(MusicServer.class.getName()).log(Level.SEVERE, null, e);
+        }
+    }
+
+public boolean switchToServer(String newServer) {
         ServerAddr serverAddr;
         System.out.println("switchToServer:" + newServer);
         serverAddr = serverPool.getServers().get(newServer);
@@ -228,41 +247,59 @@ public class MusicClient extends SwingWorker<Void, Void> implements MusicSystemI
             startReaderThread();
             System.out.println(System.currentTimeMillis() + "netzwerk eingerichtet: ");
 
-        } catch (IOException ex) {
-            Logger.getLogger(MusicClient.class.getName()).log(Level.SEVERE, null, ex);
+        
+
+
+
+
+
+} catch (IOException ex) {
+            Logger.getLogger(MusicClient.class
+
+
+.getName()).log(Level.SEVERE, null, ex);
             return false;
         }
         return true;
     }
 
     @Override
-    public MusicPlayerInterface getActivePlayer() {
+        public MusicPlayerInterface getActivePlayer() {
         return (MusicPlayerInterface) musicPlayer;
     }
 
     @Override
-    public RecordInterface getRecord() {
+        public RecordInterface getRecord() {
         return (RecordInterface) record;
     }
 
     @Override
-    public void setRecord(RecordInterface record) {
+        public void setRecord(RecordInterface record) {
         if (!this.record.equals(record)) {
             try {
                 writeObject(new Protokoll(RECORD_SELECTED, record));
-            } catch (InvalidObjectException ex) {
-                Logger.getLogger(MusicClient.class.getName()).log(Level.SEVERE, null, ex);
+            
+
+
+
+
+
+} catch (InvalidObjectException ex) {
+                Logger.getLogger(MusicClient.class
+
+
+.getName()).log(Level.SEVERE, null, ex);
             }
         }
     }
 
     @Override
-    public MusicSystemState getMusicSystemState() {
+        public MusicSystemState getMusicSystemState() {
         return musicSystemState;
     }
 
     @Override
-    public List<MusicPlayerInterface> getPlayers() {
+        public List<MusicPlayerInterface> getPlayers() {
         List<MusicPlayerInterface> players = new LinkedList<>();
         for (MusicPlayerDto player : musicSystem.players) {
             players.add((MusicPlayerInterface) player);
@@ -271,163 +308,235 @@ public class MusicClient extends SwingWorker<Void, Void> implements MusicSystemI
     }
 
     @Override
-    public PlayListComponentInterface getCurrentTrack() {
+        public PlayListComponentInterface getCurrentTrack() {
         return (PlayListComponentInterface) playListComponent;
     }
 
     @Override
-    public String getMusicSystemName() {
+        public String getMusicSystemName() {
         return musicSystem.musicSystemName;
     }
 
     @Override
-    public String getLocation() {
+        public String getLocation() {
         return musicSystem.location;
     }
 
     @Override
-    public int getCurrentTimeTrack() {
+        public int getCurrentTimeTrack() {
         return trackTime;
     }
 
     @Override
-    public double getVolume() {
+        public double getVolume() {
         return volume;
     }
 
     @Override
-    public void play() {
+        public void play() {
         try {
             writeObject(new Protokoll(CLIENT_COMMAND_PLAY, musicSystemState));
 
-        } catch (InvalidObjectException ex) {
+        
+
+
+
+
+
+} catch (InvalidObjectException ex) {
             Logger.getLogger(MusicClient.class
-                    .getName()).log(Level.SEVERE, null, ex);
+
+
+
+.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
     @Override
-    public void pause() {
+        public void pause() {
         try {
             writeObject(new Protokoll(CLIENT_COMMAND_PAUSE, musicSystemState));
 
-        } catch (InvalidObjectException ex) {
+        
+
+
+
+
+
+} catch (InvalidObjectException ex) {
             Logger.getLogger(MusicClient.class
-                    .getName()).log(Level.SEVERE, null, ex);
+
+
+
+.getName()).log(Level.SEVERE, null, ex);
         }
 
     }
 
     @Override
-    public void next() {
+        public void next() {
         try {
             writeObject(new Protokoll(CLIENT_COMMAND_NEXT, playListComponent));
 
-        } catch (InvalidObjectException ex) {
+        
+
+
+
+
+
+} catch (InvalidObjectException ex) {
             Logger.getLogger(MusicClient.class
-                    .getName()).log(Level.SEVERE, null, ex);
+
+
+
+.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
     @Override
-    public void previous() {
+        public void previous() {
         try {
             writeObject(new Protokoll(CLIENT_COMMAND_PREVIOUS, playListComponent));
 
-        } catch (InvalidObjectException ex) {
+        
+
+
+
+
+
+} catch (InvalidObjectException ex) {
             Logger.getLogger(MusicClient.class
-                    .getName()).log(Level.SEVERE, null, ex);
+
+
+
+.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
     @Override
-    public void stop() {
+        public void stop() {
         try {
             writeObject(new Protokoll(CLIENT_COMMAND_STOP, musicSystemState));
 
-        } catch (InvalidObjectException ex) {
+        
+
+
+
+
+
+} catch (InvalidObjectException ex) {
             Logger.getLogger(MusicClient.class
-                    .getName()).log(Level.SEVERE, null, ex);
+
+
+
+.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
     @Override
-    public void setVolume(double volume) {
+        public void setVolume(double volume) {
         try {
             writeObject(new Protokoll(VOLUME, new Double(volume)));
 
-        } catch (InvalidObjectException ex) {
+        
+
+
+
+
+
+} catch (InvalidObjectException ex) {
             Logger.getLogger(MusicClient.class
-                    .getName()).log(Level.SEVERE, null, ex);
+
+
+
+.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
     @Override
-    public void seek(int currentTimeTrack) {
+        public void seek(int currentTimeTrack) {
         try {
             writeObject(new Protokoll(TRACK_TIME, currentTimeTrack));
 
-        } catch (InvalidObjectException ex) {
+        
+
+
+
+
+
+} catch (InvalidObjectException ex) {
             Logger.getLogger(MusicClient.class
-                    .getName()).log(Level.SEVERE, null, ex);
+
+
+
+.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
     @Override
-    public void setCurrentTrack(PlayListComponentInterface track) {
+        public void setCurrentTrack(PlayListComponentInterface track) {
         try {
             //das Verändern des musicSystem/MusicSystem-Objektes muss vom Model/Server aus erfolgen. Sonst gibt es Rückkoppelungen
             //musicSystem.setCurrentTrack(listCurrentRecord.getSelectedValue());
             writeObject(new Protokoll(TRACK_SELECTED, track));
 
-        } catch (InvalidObjectException ex) {
+        
+
+
+
+
+
+} catch (InvalidObjectException ex) {
             Logger.getLogger(MusicClient.class
-                    .getName()).log(Level.SEVERE, null, ex);
+
+
+
+.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
     @Override
-    public void setActivePlayer(MusicPlayerInterface activePlayer) throws IllegalePlayerException {
+        public void setActivePlayer(MusicPlayerInterface activePlayer) throws IllegalePlayerException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public ServerAddr getServerAddr() {
+        public ServerAddr getServerAddr() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public boolean hasPause() {
+        public boolean hasPause() {
         return musicSystem.activePlayer.hasPause;
     }
 
     @Override
-    public boolean hasPlay() {
+        public boolean hasPlay() {
         return musicSystem.activePlayer.hasPlay;
     }
 
     @Override
-    public boolean hasNext() {
+        public boolean hasNext() {
         return musicSystem.activePlayer.hasNext;
     }
 
     @Override
-    public boolean hasPrevious() {
+        public boolean hasPrevious() {
         return musicSystem.activePlayer.hasPrevious;
     }
 
     @Override
-    public boolean hasStop() {
+        public boolean hasStop() {
         return musicSystem.activePlayer.hasStop;
     }
 
     @Override
-    public boolean hasTracks() {
+        public boolean hasTracks() {
         return musicSystem.activePlayer.hasTracks;
     }
 
     @Override
-    public boolean hasCurrentTime() {
+        public boolean hasCurrentTime() {
         return musicSystem.activePlayer.hasCurrentTime;
     }
 
@@ -479,14 +588,14 @@ public class MusicClient extends SwingWorker<Void, Void> implements MusicSystemI
      * @param o
      */
     @Override
-    public void registerObserver(TrackTimeObserver o) {
+        public void registerObserver(TrackTimeObserver o) {
         if (trackTimeObservers.contains(o) == false) {
             trackTimeObservers.add(o);
         }
     }
 
     @Override
-    public void registerObserver(VolumeObserver o) {
+        public void registerObserver(VolumeObserver o) {
         if (volumeObservers.contains(o) == false) {
             volumeObservers.add(o);
         }
@@ -497,14 +606,14 @@ public class MusicClient extends SwingWorker<Void, Void> implements MusicSystemI
      * @param o
      */
     @Override
-    public void registerObserver(TrackObserver o) {
+        public void registerObserver(TrackObserver o) {
         if (trackObservers.contains(o) == false) {
             trackObservers.add(o);
         }
     }
 
     @Override
-    public void registerObserver(StateObserver o) {
+        public void registerObserver(StateObserver o) {
         if (stateObservers.contains(o) == false) {
             stateObservers.add(o);
         }
@@ -554,7 +663,7 @@ public class MusicClient extends SwingWorker<Void, Void> implements MusicSystemI
      * @param o
      */
     @Override
-    public void registerObserver(RecordObserver o) {
+        public void registerObserver(RecordObserver o) {
         if (recordObservers.contains(o) == false) {
             recordObservers.add(o);
         }
@@ -565,185 +674,200 @@ public class MusicClient extends SwingWorker<Void, Void> implements MusicSystemI
      * @param o
      */
     @Override
-    public void registerObserver(MusicPlayerObserver o) {
+        public void registerObserver(MusicPlayerObserver o) {
         if (musicPlayerObservers.contains(o) == false) {
             musicPlayerObservers.add(o);
         }
     }
 
     @Override
-    public void registerObserver(MusicCollectionObserver o) {
+        public void registerObserver(MusicCollectionObserver o) {
         if (musicCollectionObservers.contains(o) == false) {
             musicCollectionObservers.add(o);
         }
     }
 
     @Override
-    public void registerObserver(ServerPoolObserver o) {
+        public void registerObserver(ServerPoolObserver o) {
         if (serverPoolObservers.contains(o) == false) {
             serverPoolObservers.add(o);
         }
     }
 
     @Override
-    public void setActivePlayer(String selectedPlayer) {
+        public void setActivePlayer(String selectedPlayer) {
 
         if (!(musicPlayer.title.equals(selectedPlayer))) {
             try {
                 writeObject(new Protokoll(MUSIC_PLAYER_SELECTED, selectedPlayer));
-            } catch (InvalidObjectException ex) {
-                Logger.getLogger(MusicClient.class.getName()).log(Level.SEVERE, null, ex);
+            
+
+
+
+
+
+} catch (InvalidObjectException ex) {
+                Logger.getLogger(MusicClient.class
+
+
+.getName()).log(Level.SEVERE, null, ex);
             }
         }
 
     }
 
     @Override
-    public MusicPlayerInterface getPlayer(String title) {
+        public MusicPlayerInterface getPlayer(String title) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public List<RecordInterface> getRecords() {
+        public List<RecordInterface> getRecords() {
         return musicCollection.getRecords();
     }
 
     @Override
-    public void addRecord(Record record) {
+        public void addRecord(Record record) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public Record getRecord(int i) {
+        public Record getRecord(int i) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public MusicSystemDto getDto() {
+        public MusicSystemDto getDto() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public MusicCollectionDto getMusicCollectionDto() {
+        public MusicCollectionDto getMusicCollectionDto() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public void setRecord(Record record) {
+        public void setRecord(Record record) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public RecordInterface getRecordById(int rid) {
+        public RecordInterface getRecordById(int rid) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public void setFormat(String format) {
+        public void setFormat(String format) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
+    
+
+
+
+
+
+}
 
     class EingehendReader implements Runnable {
 
-        private final MusicClient musicClient;
+    private final MusicClient musicClient;
 
-        private EingehendReader(MusicClient musicClient) {
-            this.musicClient = musicClient;
-        }
-
-        @Override
-        public void run() {
-            Protokoll nachricht;
-            MusicPlayerDto musicPlayer;
-            RecordDto record;
-            MusicSystemState state;
-            PlayListComponentDto playListComponent;
-            double volume;
-
-            try {
-                while (true) {
-
-                    // reinkommende Nachrichten vom Server
-                    Object o = ois.readObject();
-                    nachricht = (Protokoll) o; // blockiert!
-                    System.out.println(System.currentTimeMillis() + "CLIENT: gelesen: " + nachricht + " - " + o.getClass());
-                    switch (nachricht.getProtokollType()) {
-                        case MUSIC_COLLECTION_DTO:
-                            musicClient.musicCollection = (MusicCollectionDto) nachricht.getValue();
-                            notifyMusicCollectionObservers();
-//                            mca.updateMusicCollection(musicClient.getMusicCollection());
-                            break;
-                        case MUSIC_PLAYER_DTO:
-                            musicPlayer = (MusicPlayerDto) nachricht.getValue();
-                            if (!musicPlayer.equals(musicClient.musicPlayer)) {
-                                musicClient.musicSystem.activePlayer = musicPlayer;
-                                musicClient.musicPlayer = musicPlayer;
-                                notifyMusicPlayerObservers();
-//                                mca.updateMusicPlayer(musicPlayer);
-                            }
-                            break;
-                        case RECORD_DTO:
-                            //Achtung: Rückkopplung vermeiden
-                            record = (RecordDto) nachricht.getValue();
-                            if (!(record.equals(musicClient.record))) {
-                                System.out.println(System.currentTimeMillis() + "RECORD");
-                                musicClient.record = record;
-                                notifyRecordObservers();
-//                                mca.updateRecord(record);
-                            }
-                            break;
-                        case STATE:
-                            //Achtung: Rückkopplung vermeiden
-                            state = (MusicSystemState) nachricht.getValue();
-                            System.out.println(System.currentTimeMillis() + "State");
-                            musicSystemState = state;
-                            break;
-                        case PLAY_LIST_COMPONENT_DTO:
-                            //Achtung: Rückkopplung vermeiden
-                            playListComponent = (PlayListComponentDto) nachricht.getValue();
-                            if (!(playListComponent.equals(musicClient.playListComponent))) {
-                                System.out.println(System.currentTimeMillis() + "TRACK");
-                                musicClient.playListComponent = playListComponent;
-                                musicClient.trackTime = 0; 
-                                notifyTrackObservers();
-//                                mca.updatePlayListComponent(playListComponent);
-                            }
-                            break;
-                        case TRACK_TIME:
-                            trackTime = (int) nachricht.getValue();
-                            notifyTrackTimeObservers();
-//                            mca.updateTrackTime(trackTime);
-                            break;
-                        case VOLUME:
-                            //Achtung: Rückkopplung vermeiden
-                            volume = (double) nachricht.getValue();
-                            if (volume != musicClient.getVolume() && volume != musicClient.getOldVolume()) {
-                                musicClient.setOldVolume(musicClient.getVolume());
-                                musicClient.volume = volume;
-                                notifyVolumeObservers();
-                            }
-                            break;
-                        case SERVER_POOL:
-                            musicClient.serverPool = (ServerPool) nachricht.getValue();
-                            notifyServerPoolObservers();
-//                            mca.updateServerPool(musicClient.serverPool);
-                            break;
-                        default:
-                            System.out.println(System.currentTimeMillis() + "Unbekannte Nachricht:" + nachricht.getProtokollType());
-                    }
-                }
-
-            } catch (IOException | ClassNotFoundException ex) {
-                System.out.println(System.currentTimeMillis() + "CLIENT: Verbindung zum Server beendet - " + ex);
-                ex.printStackTrace();
-            }
-        }
+    private EingehendReader(MusicClient musicClient) {
+        this.musicClient = musicClient;
     }
 
-    /**
-     * @return the currentServerAddr
-     */
-    public ServerAddr getCurrentServerAddr() {
+    @Override
+    public void run() {
+        Protokoll nachricht;
+        MusicPlayerDto musicPlayer;
+        RecordDto record;
+        MusicSystemState state;
+        PlayListComponentDto playListComponent;
+        double volume;
+
+        try {
+            while (true) {
+
+                // reinkommende Nachrichten vom Server
+                Object o = ois.readObject();
+                nachricht = (Protokoll) o; // blockiert!
+                System.out.println(System.currentTimeMillis() + "CLIENT: gelesen: " + nachricht + " - " + o.getClass());
+                switch (nachricht.getProtokollType()) {
+                    case MUSIC_COLLECTION_DTO:
+                        musicClient.musicCollection = (MusicCollectionDto) nachricht.getValue();
+                        notifyMusicCollectionObservers();
+//                            mca.updateMusicCollection(musicClient.getMusicCollection());
+                        break;
+                    case MUSIC_PLAYER_DTO:
+                        musicPlayer = (MusicPlayerDto) nachricht.getValue();
+                        if (!musicPlayer.equals(musicClient.musicPlayer)) {
+                            musicClient.musicSystem.activePlayer = musicPlayer;
+                            musicClient.musicPlayer = musicPlayer;
+                            notifyMusicPlayerObservers();
+//                                mca.updateMusicPlayer(musicPlayer);
+                        }
+                        break;
+                    case RECORD_DTO:
+                        //Achtung: Rückkopplung vermeiden
+                        record = (RecordDto) nachricht.getValue();
+                        if (!(record.equals(musicClient.record))) {
+                            System.out.println(System.currentTimeMillis() + "RECORD");
+                            musicClient.record = record;
+                            notifyRecordObservers();
+//                                mca.updateRecord(record);
+                        }
+                        break;
+                    case STATE:
+                        //Achtung: Rückkopplung vermeiden
+                        state = (MusicSystemState) nachricht.getValue();
+                        System.out.println(System.currentTimeMillis() + "State");
+                        musicSystemState = state;
+                        break;
+                    case PLAY_LIST_COMPONENT_DTO:
+                        //Achtung: Rückkopplung vermeiden
+                        playListComponent = (PlayListComponentDto) nachricht.getValue();
+                        if (!(playListComponent.equals(musicClient.playListComponent))) {
+                            System.out.println(System.currentTimeMillis() + "TRACK");
+                            musicClient.playListComponent = playListComponent;
+                            musicClient.trackTime = 0;
+                            notifyTrackObservers();
+//                                mca.updatePlayListComponent(playListComponent);
+                        }
+                        break;
+                    case TRACK_TIME:
+                        trackTime = (int) nachricht.getValue();
+                        notifyTrackTimeObservers();
+//                            mca.updateTrackTime(trackTime);
+                        break;
+                    case VOLUME:
+                        //Achtung: Rückkopplung vermeiden
+                        volume = (double) nachricht.getValue();
+                        if (volume != musicClient.getVolume() && volume != musicClient.getOldVolume()) {
+                            musicClient.setOldVolume(musicClient.getVolume());
+                            musicClient.volume = volume;
+                            notifyVolumeObservers();
+                        }
+                        break;
+                    case SERVER_POOL:
+                        musicClient.serverPool = (ServerPool) nachricht.getValue();
+                        notifyServerPoolObservers();
+//                            mca.updateServerPool(musicClient.serverPool);
+                        break;
+                    default:
+                        System.out.println(System.currentTimeMillis() + "Unbekannte Nachricht:" + nachricht.getProtokollType());
+                }
+            }
+
+        } catch (IOException | ClassNotFoundException ex) {
+            System.out.println(System.currentTimeMillis() + "CLIENT: Verbindung zum Server beendet - " + ex);
+            ex.printStackTrace();
+        }
+    }
+}
+
+/**
+ * @return the currentServerAddr
+ */
+public ServerAddr getCurrentServerAddr() {
         return currentServerAddr;
     }
 

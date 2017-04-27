@@ -15,6 +15,7 @@ class MusicCollection implements MusicCollectionInterface {
     }
 
     public static synchronized MusicCollection getInstance(String format) {
+        
         switch (format) {
             case "CdPlayer":
                 return CdCollection.getInstance();

@@ -60,7 +60,9 @@ public class MusicServer extends SwingWorker<Void, Void> implements VolumeObserv
                 System.out.println("Port2: " + netProperties.getProperty("net.port"));
             }
 
-            new Thread(new MusicServerFinder()).start();
+            Thread musicServerFinderThread = new Thread(new MusicServerFinder());
+            musicServerFinderThread.setDaemon(true);
+            musicServerFinderThread.start();
 
             Socket socket;
             while (true) {
@@ -152,7 +154,7 @@ public class MusicServer extends SwingWorker<Void, Void> implements VolumeObserv
 
         private void tryAddress(InetAddress address) {
             try {
-                if (address.isReachable(100)) {
+                if (address.isReachable(10)) {
                     System.out.println(address.toString().substring(1) + " is on the network");
                     tryAllPorts(address.getHostAddress());
                 }

@@ -12,10 +12,10 @@ import de.beinlich.markus.musicsystem.model.*;
  *
  * @author Markus Beinlich
  */
-public class MusicServer1Start {
+public class MusicServer3Start {
 
     public static void main(String args[]) {
-        MusicSystemInterface musicSystem = MusicSystemCreator.getInstance("HiFi-Anlage");
+        MusicSystemInterface musicSystem = MusicSystemCreator.getInstance("Mp3Player");
         MusicSystemControllerInterface musicSystemController = new MusicSystemController(musicSystem);
     }
 }

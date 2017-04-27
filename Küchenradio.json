@@ -7,6 +7,10 @@ musicsystem =
                 {
                     "type": "Mp3Player",
                     "title": "Mp3-Player"
+                },
+                {
+                    "type": "Radio",
+                    "title": "Internet-Radio"
                 }
             ]
         }
