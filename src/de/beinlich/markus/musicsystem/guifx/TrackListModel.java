@@ -15,14 +15,18 @@ import javafx.collections.ObservableList;
  */
 public class TrackListModel {
 
-        private final ObservableList<PlayListComponentInterface> tracks;
+    private ObservableList<PlayListComponentInterface> tracks;
 
-        public TrackListModel(MusicSystemInterface musicSystem) {
-            tracks = FXCollections.observableArrayList(musicSystem.getRecord().getTracks());
-        }
-        
-        public ObservableList<PlayListComponentInterface> getTracks() {
-            return tracks;
-        }
+    public TrackListModel(MusicSystemInterface musicSystem) {
+        tracks = FXCollections.observableArrayList(musicSystem.getRecord().getTracks());
     }
 
+    public ObservableList<PlayListComponentInterface> getTracks() {
+        return tracks;
+    }
+
+    public void setTracks(ObservableList<PlayListComponentInterface> tracks) {
+        this.tracks = tracks;
+    }
+
+}

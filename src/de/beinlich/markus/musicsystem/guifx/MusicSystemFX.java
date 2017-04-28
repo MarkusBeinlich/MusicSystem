@@ -30,8 +30,8 @@ public class MusicSystemFX extends Application {
         Parent root = FXMLLoader.load(getClass().getResource("FXMLDocument.fxml"));
 
         Scene scene = new Scene(root);
-
-        stage.setTitle(musicClient.getMusicSystemName() + " - " + musicClient.getLocation() + " -  FX-Client" );
+        setUserAgentStylesheet(STYLESHEET_CASPIAN);
+        stage.setTitle(musicClient.getMusicSystemName() + " - " + musicClient.getLocation() + " -  FX-Client");
         stage.setScene(scene);
         stage.show();
     }

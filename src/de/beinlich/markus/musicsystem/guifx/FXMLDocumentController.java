@@ -10,21 +10,18 @@ import de.beinlich.markus.musicsystem.model.net.*;
 import java.io.ByteArrayInputStream;
 import java.net.URL;
 import java.util.ResourceBundle;
+import javafx.application.Application;
+import static javafx.application.Application.STYLESHEET_CASPIAN;
+import static javafx.application.Application.STYLESHEET_MODENA;
+import static javafx.application.Application.setUserAgentStylesheet;
 import javafx.application.Platform;
-import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
-import javafx.event.ActionEvent;
+import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.Slider;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
+import javafx.scene.control.*;
+import javafx.scene.image.*;
+import javafx.stage.Stage;
 
 /**
  *
@@ -43,6 +40,8 @@ public class FXMLDocumentController implements Initializable, VolumeObserver, Tr
     private Button buttonPause;
     @FXML
     private Button buttonStop;
+    @FXML
+    private Button buttonCSS;
     @FXML
     private Slider sliderVolume;
     @FXML
@@ -94,6 +93,13 @@ public class FXMLDocumentController implements Initializable, VolumeObserver, Tr
         buttonNext.setOnAction(event -> musicSystemController.next());
         buttonPrevious.setOnAction(event -> musicSystemController.previous());
         buttonPause.setOnAction(event -> musicSystemController.pause());
+        buttonCSS.setOnAction(event -> {
+            if (Application.getUserAgentStylesheet().equals(STYLESHEET_CASPIAN)) {
+                setUserAgentStylesheet(STYLESHEET_MODENA);
+            } else {
+                setUserAgentStylesheet(STYLESHEET_CASPIAN);
+            }
+        });
 
         sliderVolume.valueProperty().addListener((ObservableValue<? extends Number> ov, Number old_val, Number new_val) -> {
             musicSystemController.setVolume(sliderVolume.getValue());
@@ -113,8 +119,8 @@ public class FXMLDocumentController implements Initializable, VolumeObserver, Tr
         comboBoxServer.valueProperty().addListener((observable, oldValue, newValue) -> {
             if (!newValue.equals(musicClient.getCurrentServerAddr().getName())) {
                 if (false == musicClient.switchToServer(newValue)) {
-                    Alert alert = new Alert(Alert.AlertType.ERROR, "Server " + newValue + " ist im Moment nicht erreichbar. Eventuell ist er nicht gestartet." );
-                    comboBoxServer.getSelectionModel().select(oldValue);
+                    Alert alert = new Alert(Alert.AlertType.ERROR, "Server " + newValue + " ist im Moment nicht erreichbar. Eventuell ist er nicht gestartet.");
+//                    comboBoxServer.getSelectionModel().select(oldValue);
                 } else {
                     System.out.println(System.currentTimeMillis() + "**************MusicClient ist aktiv");
                     doClientInit();
@@ -122,6 +128,10 @@ public class FXMLDocumentController implements Initializable, VolumeObserver, Tr
                 }
             }
         });
+        listViewTrackList.getSelectionModel().selectedItemProperty()
+                .addListener((observable, oldValue, newValue) -> {
+                    musicSystemController.setCurrentTrack(newValue);
+                });
 
         musicSystem.registerObserver((VolumeObserver) this);
         musicSystem.registerObserver((TrackTimeObserver) this);
@@ -194,17 +204,32 @@ public class FXMLDocumentController implements Initializable, VolumeObserver, Tr
                     break;
                 }
             }
-            listViewTrackList.setItems(trackListModel.getTracks());
-            Image img = new Image(new ByteArrayInputStream(musicSystem.getRecord().getCover()), 150, 150, true, true);
-            cover.setImage(img);
+            listViewTrackList.setItems(FXCollections.observableArrayList(musicSystem.getRecord().getTracks()));
+            listViewTrackList.refresh();
+            cover.setImage(showCover());
         });
-        System.out.println(System.currentTimeMillis() + "setRecord: " + musicSystem.getRecord());
+        System.out.println(System.currentTimeMillis() + "setRecord: " + musicSystem.getRecord() + " - " + trackListModel.getTracks().toString());
+    }
+
+    private Image showCover() {
+        Image img;
+        img = null;
+        if (hasCover()) {
+            img = new Image(new ByteArrayInputStream(musicSystem.getRecord().getCover()), 150, 150, true, true);
+        }
+        return img;
+    }
+
+    private boolean hasCover() {
+        return (musicSystem.getRecord().getCover() != null);
     }
 
     @Override
     public void updateMusicPlayer() {
         System.out.println(System.currentTimeMillis() + "UpdateMusicPlayer: " + musicSystem.getActivePlayer());
         Platform.runLater(() -> {
+            Stage stage = (Stage) buttonPlay.getScene().getWindow();
+            stage.setTitle(musicClient.getMusicSystemName() + " - " + musicClient.getLocation() + " -  FX-Client");
             //Werte der aktiven MusicPlayer anzeigen
             buttonPlay.setDisable(!musicSystem.hasPlay());
             buttonStop.setDisable(!musicSystem.hasStop());

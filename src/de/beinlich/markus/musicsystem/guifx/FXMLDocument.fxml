@@ -16,10 +16,11 @@
       <ButtonBar layoutY="393.0" prefHeight="40.0" prefWidth="695.0" AnchorPane.bottomAnchor="0.0">
         <buttons>
           <Button id="buttonPlay" fx:id="buttonPlay" text="Play" />
-              <Button id="buttonNext" fx:id="buttonNext"  text="Next" />
-            <Button id="buttonPrevious" fx:id="buttonPrevious"  text="Previous" />
-            <Button id="buttonPause" fx:id="buttonPause"  text="Pause" />
-            <Button id="buttonStop" fx:id="buttonStop" mnemonicParsing="false"  text="Stop" />
+              <Button id="buttonNext" fx:id="buttonNext" text="Next" />
+            <Button id="buttonPrevious" fx:id="buttonPrevious" text="Previous" />
+            <Button id="buttonPause" fx:id="buttonPause" text="Pause" />
+            <Button id="buttonStop" fx:id="buttonStop" mnemonicParsing="false" text="Stop" />
+            <Button fx:id="buttonCSS" mnemonicParsing="false" text="CSS" />
         </buttons>
          <padding>
             <Insets bottom="1.0" />
@@ -29,9 +30,9 @@
         <Label layoutX="19.0" layoutY="216.0" minHeight="16" minWidth="69" text="Volume:" />
       <Slider id="sliderProgress" fx:id="sliderProgress" layoutX="55.0" layoutY="405.0" prefHeight="18.0" prefWidth="586.0" />
       <ImageView id="cover" fx:id="cover" fitHeight="150.0" fitWidth="200.0" layoutX="49.0" layoutY="27.0" pickOnBounds="true" preserveRatio="true" />
-      <ComboBox id="comboBoxServer" fx:id="comboBoxServer" layoutX="99.0" layoutY="249.0"  prefWidth="150.0" />
+      <ComboBox id="comboBoxServer" fx:id="comboBoxServer" layoutX="99.0" layoutY="249.0" prefWidth="150.0" />
       <ComboBox id="comboBoxPlayer" fx:id="comboBoxPlayer" layoutX="99.0" layoutY="292.0" prefWidth="150.0" />
-      <ComboBox id="comboBoxRecords" fx:id="comboBoxRecords" layoutX="99.0" layoutY="333.0"  prefWidth="150.0" />
+      <ComboBox id="comboBoxRecords" fx:id="comboBoxRecords" layoutX="99.0" layoutY="333.0" prefWidth="150.0" />
       <Label layoutX="19.0" layoutY="254.0" text="Server:" />
       <Label layoutX="19.0" layoutY="297.0" text="Player:" />
       <Label layoutX="5.0" layoutY="338.0" text="Record:" />
