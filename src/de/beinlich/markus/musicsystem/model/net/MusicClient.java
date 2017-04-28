@@ -14,6 +14,8 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 import java.util.logging.*;
+import javafx.application.*;
+import javafx.beans.property.*;
 import javax.swing.SwingWorker;
 
 /**
@@ -54,7 +56,7 @@ public class MusicClient extends SwingWorker<Void, Void> implements MusicSystemI
     private MusicSystemState musicSystemState;
     private double volume;
     private double oldVolume;
-    private int trackTime;
+    private DoubleProperty trackTime;
     private ClientInit clientInit;
     private static String clientName;
     private int ipCounter = 1;
@@ -139,7 +141,7 @@ public class MusicClient extends SwingWorker<Void, Void> implements MusicSystemI
                 volume = musicSystem.activePlayer.volume;
                 oldVolume = volume;
                 playListComponent = musicSystem.activePlayer.currentTrack;
-                trackTime = musicSystem.activePlayer.currentTimeTrack;
+                setTrackTime(new SimpleDoubleProperty(this, "trackTime", musicSystem.activePlayer.currentTimeTrack));
 
             } catch (ClassNotFoundException ex) {
                 System.out.println(ex);
@@ -307,7 +309,7 @@ public class MusicClient extends SwingWorker<Void, Void> implements MusicSystemI
 
     @Override
     public int getCurrentTimeTrack() {
-        return trackTime;
+        return (int) volume;
     }
 
     @Override
@@ -669,6 +671,7 @@ public class MusicClient extends SwingWorker<Void, Void> implements MusicSystemI
     class EingehendReader implements Runnable {
 
         private final MusicClient musicClient;
+        private Protokoll nachricht;
 
         private EingehendReader(MusicClient musicClient) {
             this.musicClient = musicClient;
@@ -676,7 +679,7 @@ public class MusicClient extends SwingWorker<Void, Void> implements MusicSystemI
 
         @Override
         public void run() {
-            Protokoll nachricht;
+
             MusicPlayerDto musicPlayer;
             RecordDto record;
             MusicSystemState state;
@@ -727,14 +730,16 @@ public class MusicClient extends SwingWorker<Void, Void> implements MusicSystemI
                             if (!(playListComponent.equals(musicClient.playListComponent))) {
                                 System.out.println(System.currentTimeMillis() + "TRACK");
                                 musicClient.playListComponent = playListComponent;
-                                musicClient.trackTime = 0;
+                                musicClient.getTrackTime().set(0.0);
                                 notifyTrackObservers();
 //                                mca.updatePlayListComponent(playListComponent);
                             }
                             break;
                         case TRACK_TIME:
-                            trackTime = (int) nachricht.getValue();
-                            notifyTrackTimeObservers();
+                            Platform.runLater(() -> {
+                                getTrackTime().setValue((int) nachricht.getValue());
+                            });
+//                            notifyTrackTimeObservers();
 //                            mca.updateTrackTime(trackTime);
                             break;
                         case VOLUME:
@@ -810,6 +815,20 @@ public class MusicClient extends SwingWorker<Void, Void> implements MusicSystemI
      */
     public static String getClientName() {
         return clientName;
+    }
+
+    /**
+     * @return the trackTime
+     */
+    public DoubleProperty getTrackTime() {
+        return trackTime;
+    }
+
+    /**
+     * @param trackTime the trackTime to set
+     */
+    public void setTrackTime(DoubleProperty trackTime) {
+        this.trackTime = trackTime;
     }
 
 }

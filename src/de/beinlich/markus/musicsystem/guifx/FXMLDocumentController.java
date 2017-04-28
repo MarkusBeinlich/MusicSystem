@@ -17,6 +17,7 @@ import static javafx.application.Application.setUserAgentStylesheet;
 import javafx.application.Platform;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
+import javafx.event.*;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
@@ -27,7 +28,7 @@ import javafx.stage.Stage;
  *
  * @author Markus
  */
-public class FXMLDocumentController implements Initializable, VolumeObserver, TrackObserver, TrackTimeObserver, RecordObserver, MusicPlayerObserver, MusicCollectionObserver, ServerPoolObserver {
+public class FXMLDocumentController implements Initializable, VolumeObserver, TrackObserver, RecordObserver, MusicPlayerObserver, MusicCollectionObserver, ServerPoolObserver {
 
     private Label label;
     @FXML
@@ -88,6 +89,11 @@ public class FXMLDocumentController implements Initializable, VolumeObserver, Tr
         playerModel = MusicSystemFX.getPlayerModel();
         trackListModel = MusicSystemFX.getTrackListModel();
 
+        labelElapsedTime.textProperty().bind(musicClient.getTrackTime().asString());
+        labelRemainingTime.textProperty()
+                .bind((musicClient.getTrackTime().subtract(musicSystem.getCurrentTrack().getPlayingTime()).asString()));
+
+
         buttonPlay.setOnAction(event -> musicSystemController.play());
         buttonStop.setOnAction(event -> musicSystemController.stop());
         buttonNext.setOnAction(event -> musicSystemController.next());
@@ -104,10 +110,10 @@ public class FXMLDocumentController implements Initializable, VolumeObserver, Tr
         sliderVolume.valueProperty().addListener((ObservableValue<? extends Number> ov, Number old_val, Number new_val) -> {
             musicSystemController.setVolume(sliderVolume.getValue());
         });
-        sliderProgress.valueProperty().addListener((ObservableValue<? extends Number> ov, Number old_val, Number new_val) -> {
-            if (sliderProgress.getValue() != musicSystem.getCurrentTimeTrack()) {
+        
+        sliderProgress.valueProperty().bindBidirectional(musicClient.getTrackTime());
+        sliderProgress.setOnScrollFinished((event) -> {
                 musicSystemController.seek((int) sliderProgress.getValue());
-            }
         });
 
         comboBoxPlayer.valueProperty().addListener((ObservableValue<? extends MusicPlayerInterface> observable, MusicPlayerInterface oldValue, MusicPlayerInterface newValue) -> {
@@ -130,11 +136,13 @@ public class FXMLDocumentController implements Initializable, VolumeObserver, Tr
         });
         listViewTrackList.getSelectionModel().selectedItemProperty()
                 .addListener((observable, oldValue, newValue) -> {
-                    musicSystemController.setCurrentTrack(newValue);
+                    if (newValue != null) {
+                        musicSystemController.setCurrentTrack(newValue);
+                    }
                 });
 
         musicSystem.registerObserver((VolumeObserver) this);
-        musicSystem.registerObserver((TrackTimeObserver) this);
+//        musicSystem.registerObserver((TrackTimeObserver) this);
         musicSystem.registerObserver((TrackObserver) this);
         musicSystem.registerObserver((RecordObserver) this);
         musicSystem.registerObserver((MusicPlayerObserver) this);
@@ -185,12 +193,11 @@ public class FXMLDocumentController implements Initializable, VolumeObserver, Tr
         updateTrackTime();
     }
 
-    @Override
     public void updateTrackTime() {
         Platform.runLater(() -> {
-            labelElapsedTime.setText("- " + musicSystem.getCurrentTimeTrack());
-            labelRemainingTime.setText(" " + (musicSystem.getCurrentTrack().getPlayingTime() - musicSystem.getCurrentTimeTrack()));
-            sliderProgress.setValue((int) musicSystem.getCurrentTimeTrack());
+//            labelElapsedTime.setText("- " + musicSystem.getCurrentTimeTrack());
+//            labelRemainingTime.setText(" " + (musicSystem.getCurrentTrack().getPlayingTime() - musicSystem.getCurrentTimeTrack()));
+//            sliderProgress.setValue((int) musicSystem.getCurrentTimeTrack());
         });
     }
 
