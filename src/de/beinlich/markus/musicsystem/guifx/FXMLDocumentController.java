@@ -14,21 +14,16 @@ import javafx.application.Application;
 import static javafx.application.Application.STYLESHEET_CASPIAN;
 import static javafx.application.Application.STYLESHEET_MODENA;
 import static javafx.application.Application.setUserAgentStylesheet;
-import javafx.application.Platform;
-import javafx.beans.value.ObservableValue;
-import javafx.collections.FXCollections;
-import javafx.event.*;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.image.*;
-import javafx.stage.Stage;
 
 /**
  *
  * @author Markus
  */
-public class FXMLDocumentController implements Initializable, VolumeObserver, TrackObserver, RecordObserver, MusicPlayerObserver, MusicCollectionObserver, ServerPoolObserver {
+public class FXMLDocumentController implements Initializable {
 
     private Label label;
     @FXML
@@ -69,11 +64,7 @@ public class FXMLDocumentController implements Initializable, VolumeObserver, Tr
     private MusicSystemInterface musicSystem;
     private MusicCollectionInterface musicCollection;
     private MusicSystemControllerInterface musicSystemController;
-    private MusicClient musicClient;
-    private RecordsModel recordsModel;
-    private ServerModel serverModel;
-    private PlayerModel playerModel;
-    private TrackListModel trackListModel;
+    private MusicClientFX musicClient;
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
@@ -84,15 +75,9 @@ public class FXMLDocumentController implements Initializable, VolumeObserver, Tr
         musicSystemController = musicClient;
         musicCollection = musicClient;
 
-        recordsModel = MusicSystemFX.getRecordsModel();
-        serverModel = MusicSystemFX.getServerModel();
-        playerModel = MusicSystemFX.getPlayerModel();
-        trackListModel = MusicSystemFX.getTrackListModel();
-
-        labelElapsedTime.textProperty().bind(musicClient.getTrackTime().asString());
+        labelElapsedTime.textProperty().bind(musicClient.getCurrentTimeTrackP().asString());
         labelRemainingTime.textProperty()
-                .bind((musicClient.getTrackTime().subtract(musicSystem.getCurrentTrack().getPlayingTime()).asString()));
-
+                .bind((musicClient.getCurrentTimeTrackP().subtract(musicClient.getPlayingTimeP()).asString()));
 
         buttonPlay.setOnAction(event -> musicSystemController.play());
         buttonStop.setOnAction(event -> musicSystemController.stop());
@@ -107,115 +92,70 @@ public class FXMLDocumentController implements Initializable, VolumeObserver, Tr
             }
         });
 
-        sliderVolume.valueProperty().addListener((ObservableValue<? extends Number> ov, Number old_val, Number new_val) -> {
-            musicSystemController.setVolume(sliderVolume.getValue());
-        });
-        
-        sliderProgress.valueProperty().bindBidirectional(musicClient.getTrackTime());
-        sliderProgress.setOnScrollFinished((event) -> {
-                musicSystemController.seek((int) sliderProgress.getValue());
-        });
-
-        comboBoxPlayer.valueProperty().addListener((ObservableValue<? extends MusicPlayerInterface> observable, MusicPlayerInterface oldValue, MusicPlayerInterface newValue) -> {
-            musicSystemController.setActivePlayer(newValue.getTitle());
-        });
-        comboBoxRecords.valueProperty().addListener((observable, oldValue, newValue) -> {
-            musicSystemController.setRecord(newValue);
-        });
-        comboBoxServer.valueProperty().addListener((observable, oldValue, newValue) -> {
-            if (!newValue.equals(musicClient.getCurrentServerAddr().getName())) {
-                if (false == musicClient.switchToServer(newValue)) {
-                    Alert alert = new Alert(Alert.AlertType.ERROR, "Server " + newValue + " ist im Moment nicht erreichbar. Eventuell ist er nicht gestartet.");
+        comboBoxServer.itemsProperty().bindBidirectional(musicClient.getServerPoolP());
+        comboBoxServer.getSelectionModel().select(musicSystem.getServerAddr().getName());
+        comboBoxServer.setOnAction((event) -> {
+            if (false == musicClient.switchToServer(comboBoxServer.getValue())) {
+                Alert alert = new Alert(Alert.AlertType.ERROR, "Server " + comboBoxServer.getValue() + " ist im Moment nicht erreichbar. Eventuell ist er nicht gestartet.");
 //                    comboBoxServer.getSelectionModel().select(oldValue);
-                } else {
-                    System.out.println(System.currentTimeMillis() + "**************MusicClient ist aktiv");
-                    doClientInit();
-
-                }
+            } else {
+                System.out.println(System.currentTimeMillis() + "**************MusicClient ist aktiv");
             }
         });
-        listViewTrackList.getSelectionModel().selectedItemProperty()
-                .addListener((observable, oldValue, newValue) -> {
-                    if (newValue != null) {
-                        musicSystemController.setCurrentTrack(newValue);
-                    }
-                });
 
-        musicSystem.registerObserver((VolumeObserver) this);
-//        musicSystem.registerObserver((TrackTimeObserver) this);
-        musicSystem.registerObserver((TrackObserver) this);
-        musicSystem.registerObserver((RecordObserver) this);
-        musicSystem.registerObserver((MusicPlayerObserver) this);
-        musicSystem.registerObserver((ServerPoolObserver) this);
-        musicCollection.registerObserver((MusicCollectionObserver) this);
+        comboBoxRecords.itemsProperty().bindBidirectional(musicClient.getMusicCollectionP());
+        comboBoxRecords.getSelectionModel().select(musicSystem.getRecord());
+        comboBoxRecords.setOnAction((event) -> {
+            musicSystemController.setRecord(comboBoxRecords.getValue());
+            cover.setImage(showCover());
+        });
+        musicClient.getRecordProp().addListener((observable, oldValue, newValue) -> {
+            comboBoxRecords.getSelectionModel().select(newValue);
+        });
+
+        comboBoxPlayer.itemsProperty().bindBidirectional(musicClient.getMusicPlayerP());
+        comboBoxPlayer.getSelectionModel().select(musicSystem.getActivePlayer());
+        comboBoxPlayer.setOnAction((event) -> {
+            musicSystemController.setActivePlayer(comboBoxPlayer.getValue().getTitle());
+            //Werte des aktiven MusicPlayer anzeigen
+            buttonPlay.setDisable(!musicSystem.hasPlay());
+            buttonStop.setDisable(!musicSystem.hasStop());
+            buttonNext.setDisable(!musicSystem.hasNext());
+            buttonPrevious.setDisable(!musicSystem.hasPrevious());
+            buttonPause.setDisable(!musicSystem.hasPause());
+            sliderProgress.setDisable(!musicSystem.hasCurrentTime());
+        });
+        musicClient.getActivePlayerP().addListener((observable, oldValue, newValue) -> {
+            comboBoxPlayer.getSelectionModel().select(newValue);
+        });
+
+        listViewTrackList.itemsProperty().bindBidirectional(musicClient.getRecordP());
+        listViewTrackList.setOnMouseClicked((value) -> {
+            musicSystemController.setCurrentTrack(listViewTrackList.getSelectionModel().getSelectedItem());
+        });
+        
+        musicClient.getPlayListComponentP().addListener((observable, oldValue, newValue) -> {
+            System.out.println("getPlayListComponentP:" + newValue.getUid() + newValue + newValue.hashCode()+
+                    " - " + listViewTrackList.getItems().get(0).getUid()+ listViewTrackList.getItems().get(0).hashCode() +" - " + listViewTrackList.getItems().indexOf(newValue));
+            listViewTrackList.getSelectionModel().select(newValue);
+            labelCurrentTrack.setText(newValue.getTitle() + " : " + musicSystem.getCurrentTrack().getPlayingTime());
+            sliderProgress.setValue(0);
+            sliderProgress.setMax(newValue.getPlayingTime());
+        });
+
+        sliderVolume.valueProperty().bindBidirectional(musicClient.getVolumeP());
+        sliderVolume.setOnMouseReleased((event) -> {
+            musicSystemController.setVolume(sliderVolume.getValue());
+        });
+
+        sliderProgress.valueProperty().bindBidirectional(musicClient.getCurrentTimeTrackP());
+        sliderProgress.setOnMouseReleased((event) -> {
+            musicSystemController.seek((int) sliderProgress.getValue());
+        });
 
         System.out.println(System.currentTimeMillis() + "musicSystem ist übergeben:" + musicSystem);
 
-        doClientInit();
 
-    }
-
-    private void doClientInit() {
-
-        comboBoxPlayer.setItems(playerModel.getPlayer());
-        listViewTrackList.setItems(trackListModel.getTracks());
-        updateRecord();
-        updateServerPool();
-        updateMusicCollection();
-        updateMusicPlayer();
-        updateTrack();
-        updateTrackTime();
-        updateVolume();
-    }
-
-    @Override
-    public void updateVolume() {
-        Platform.runLater(() -> sliderVolume.setValue(musicSystem.getVolume()));
-    }
-
-    @Override
-    public void updateTrack() {
-        System.out.println("updatePlayListComponent:" + musicSystem.getCurrentTrack());
-        if (musicSystem.getCurrentTrack() != null) {
-            //richtigen Track selektieren - Objektgleichheit ist leider nicht gegeben
-            for (int i = 0; i < listViewTrackList.getItems().size(); i++) {
-                if (listViewTrackList.getItems().get(i).getUid() == musicSystem.getCurrentTrack().getUid()) {
-                    listViewTrackList.getSelectionModel().select(i);
-                    break;
-                }
-            }
-            Platform.runLater(() -> {
-                labelCurrentTrack.setText(musicSystem.getCurrentTrack().getTitle() + " : " + musicSystem.getCurrentTrack().getPlayingTime());
-                sliderProgress.setValue(0);
-                sliderProgress.setMax(musicSystem.getCurrentTrack().getPlayingTime());
-            });
-        }
-        updateTrackTime();
-    }
-
-    public void updateTrackTime() {
-        Platform.runLater(() -> {
-//            labelElapsedTime.setText("- " + musicSystem.getCurrentTimeTrack());
-//            labelRemainingTime.setText(" " + (musicSystem.getCurrentTrack().getPlayingTime() - musicSystem.getCurrentTimeTrack()));
-//            sliderProgress.setValue((int) musicSystem.getCurrentTimeTrack());
-        });
-    }
-
-    @Override
-    public void updateRecord() {
-        Platform.runLater(() -> {
-            //richtigen Record selektieren - Objektgleichheit ist leider nicht gegeben
-            for (int i = 0; i < comboBoxRecords.getItems().size(); i++) {
-                if (comboBoxRecords.getItems().get(i).getTitle().equals(musicSystem.getRecord().getTitle())) {
-                    comboBoxRecords.getSelectionModel().select(i);
-                    break;
-                }
-            }
-            listViewTrackList.setItems(FXCollections.observableArrayList(musicSystem.getRecord().getTracks()));
-            listViewTrackList.refresh();
-            cover.setImage(showCover());
-        });
-        System.out.println(System.currentTimeMillis() + "setRecord: " + musicSystem.getRecord() + " - " + trackListModel.getTracks().toString());
     }
 
     private Image showCover() {
@@ -229,42 +169,6 @@ public class FXMLDocumentController implements Initializable, VolumeObserver, Tr
 
     private boolean hasCover() {
         return (musicSystem.getRecord().getCover() != null);
-    }
-
-    @Override
-    public void updateMusicPlayer() {
-        System.out.println(System.currentTimeMillis() + "UpdateMusicPlayer: " + musicSystem.getActivePlayer());
-        Platform.runLater(() -> {
-            Stage stage = (Stage) buttonPlay.getScene().getWindow();
-            stage.setTitle(musicClient.getMusicSystemName() + " - " + musicClient.getLocation() + " -  FX-Client");
-            //Werte der aktiven MusicPlayer anzeigen
-            buttonPlay.setDisable(!musicSystem.hasPlay());
-            buttonStop.setDisable(!musicSystem.hasStop());
-            buttonNext.setDisable(!musicSystem.hasNext());
-            buttonPrevious.setDisable(!musicSystem.hasPrevious());
-            buttonPause.setDisable(!musicSystem.hasPause());
-            sliderProgress.setDisable(!musicSystem.hasCurrentTime());
-//        jScrollPane1.setEnabled(musicSystem.hasTracks());
-//        listCurrentRecord.setEnabled(musicSystem.hasTracks());
-            //richtigen Player selektieren - Objektgleichheit ist leider nicht gegeben
-            for (int i = 0; i < comboBoxPlayer.getItems().size(); i++) {
-                if (comboBoxPlayer.getItems().get(i).getTitle().equals(musicSystem.getActivePlayer().getTitle())) {
-                    comboBoxPlayer.getSelectionModel().select(i);
-                    break;
-                }
-            }
-        });
-        System.out.println(System.currentTimeMillis() + "UpdateMusicPlayerEnd: " + comboBoxPlayer.getValue());
-    }
-
-    @Override
-    public void updateMusicCollection() {
-        Platform.runLater(() -> comboBoxRecords.setItems(recordsModel.getRecords()));
-    }
-
-    @Override
-    public void updateServerPool() {
-        Platform.runLater(() -> comboBoxServer.setItems(serverModel.getServer()));
     }
 
 }

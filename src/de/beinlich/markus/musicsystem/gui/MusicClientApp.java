@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package de.beinlich.markus.musicsystem.gui;
 
 import de.beinlich.markus.musicsystem.model.net.MusicSystemControllerInterface;
@@ -11,7 +6,8 @@ import de.beinlich.markus.musicsystem.model.net.*;
 import java.awt.event.*;
 import java.awt.image.*;
 import java.io.*;
-import java.util.*;
+import java.util.LinkedList; 
+import java.util.List;
 import java.util.logging.*;
 import javax.imageio.*;
 import javax.swing.*;
@@ -22,7 +18,7 @@ import javax.swing.*;
  */
 public class MusicClientApp extends javax.swing.JFrame implements VolumeObserver, TrackObserver, TrackTimeObserver, RecordObserver, MusicPlayerObserver, MusicCollectionObserver, ServerPoolObserver {
 
-    private final MusicSystemInterface musicSystem;
+    private final MusicSystemInterfaceObserver musicSystem;
     private final MusicCollectionInterface musicCollection;
     private final MusicSystemControllerInterface musicSystemController;
     private final MusicClient musicClient;

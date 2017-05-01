@@ -70,18 +70,4 @@ public interface MusicSystemInterface {
     boolean hasTracks();
 
     boolean hasCurrentTime();
-
-    void registerObserver(TrackObserver o);
-
-    void registerObserver(TrackTimeObserver o);
-
-    void registerObserver(VolumeObserver o);
-
-    void registerObserver(StateObserver o);
-
-    void registerObserver(RecordObserver o);
-
-    void registerObserver(MusicPlayerObserver o);
-
-    void registerObserver(ServerPoolObserver o);
 }

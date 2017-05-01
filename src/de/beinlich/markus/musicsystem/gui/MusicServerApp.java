@@ -17,7 +17,7 @@ public class MusicServerApp extends javax.swing.JFrame implements VolumeObserver
 
     private static final long serialVersionUID = 5175912086028741494L;
     private static MusicServerApp uniqueInstance;
-    private final MusicSystemInterface musicSystem;
+    private final MusicSystemInterfaceObserver musicSystem;
     private MusicCollectionInterface musicCollection;
     private final MusicSystemControllerInterface musicSystemController;
     private final TrackListModel tlm;
@@ -27,7 +27,7 @@ public class MusicServerApp extends javax.swing.JFrame implements VolumeObserver
     /**
      * Creates new form Player
      */
-    private MusicServerApp(MusicSystemControllerInterface musicSystemController, MusicSystemInterface musicSystem) {
+    private MusicServerApp(MusicSystemControllerInterface musicSystemController, MusicSystemInterfaceObserver musicSystem) {
         //MusicServer - Daten laden und Model anlegen 
         musicServer = new MusicServer(musicSystemController, musicSystem);
         musicServer.execute();
@@ -56,7 +56,7 @@ public class MusicServerApp extends javax.swing.JFrame implements VolumeObserver
 
     }
 
-    public static MusicServerApp startMusicServerApp(MusicSystemControllerInterface musicSystemController, MusicSystemInterface musicSystem) throws InterruptedException, InvocationTargetException {
+    public static MusicServerApp startMusicServerApp(MusicSystemControllerInterface musicSystemController, MusicSystemInterfaceObserver musicSystem) throws InterruptedException, InvocationTargetException {
         EventQueue.invokeAndWait(() -> {
             uniqueInstance = new MusicServerApp(musicSystemController, musicSystem);
         });

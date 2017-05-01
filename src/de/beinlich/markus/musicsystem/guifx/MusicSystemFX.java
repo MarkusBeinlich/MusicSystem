@@ -1,6 +1,6 @@
 package de.beinlich.markus.musicsystem.guifx;
 
-import de.beinlich.markus.musicsystem.model.net.MusicClient;
+import de.beinlich.markus.musicsystem.model.net.MusicClientFX;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -13,19 +13,11 @@ import javafx.stage.Stage;
  */
 public class MusicSystemFX extends Application {
 
-    static private MusicClient musicClient;
-    static private RecordsModel recordsModel;
-    static private PlayerModel playerModel;
-    static private ServerModel serverModel;
-    static private TrackListModel trackListModel;
+    static private MusicClientFX musicClient;
 
     @Override
     public void start(Stage stage) throws Exception {
-        musicClient = new MusicClient("FX-Client");
-        recordsModel = new RecordsModel(musicClient);
-        serverModel = new ServerModel(musicClient);
-        playerModel = new PlayerModel(musicClient);
-        trackListModel = new TrackListModel(musicClient);
+        musicClient = new MusicClientFX("FX-Client");
 
         Parent root = FXMLLoader.load(getClass().getResource("FXMLDocument.fxml"));
 
@@ -36,23 +28,7 @@ public class MusicSystemFX extends Application {
         stage.show();
     }
 
-    public static RecordsModel getRecordsModel() {
-        return recordsModel;
-    }
-
-    public static ServerModel getServerModel() {
-        return serverModel;
-    }
-
-    public static PlayerModel getPlayerModel() {
-        return playerModel;
-    }
-
-    public static TrackListModel getTrackListModel() {
-        return trackListModel;
-    }
-
-    public static MusicClient getMusicClient() {
+    public static MusicClientFX getMusicClient() {
         return musicClient;
     }
 

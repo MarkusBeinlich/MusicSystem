@@ -17,10 +17,10 @@ import java.util.logging.*;
  */
 public class MusicSystemController implements MusicSystemControllerInterface {
 
-    MusicSystemInterface musicSystem;
+    MusicSystemInterfaceObserver musicSystem;
     MusicServerApp musicServerApp;
 
-    public MusicSystemController(MusicSystemInterface musicSystem) {
+    public MusicSystemController(MusicSystemInterfaceObserver musicSystem) {
         this.musicSystem = musicSystem;
         try {
             musicServerApp = MusicServerApp.startMusicServerApp(this, musicSystem);

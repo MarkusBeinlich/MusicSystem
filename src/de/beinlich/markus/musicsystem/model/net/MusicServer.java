@@ -13,13 +13,13 @@ public class MusicServer extends SwingWorker<Void, Void> implements VolumeObserv
     private final List<ObjectOutputStream> clients;
     private final List<ObjectOutputStream> servers;
 
-    private final MusicSystemInterface musicSystem; //Model
+    private final MusicSystemInterfaceObserver musicSystem; //Model
     private final MusicSystemControllerInterface musicSystemController;
     private MusicCollectionInterface musicCollection;
     private final ServerPool serverPool;
     private final String name;
 
-    public MusicServer(MusicSystemControllerInterface musicSystemController, MusicSystemInterface musicSystem) {
+    public MusicServer(MusicSystemControllerInterface musicSystemController, MusicSystemInterfaceObserver musicSystem) {
 //        this.msa = msa;
         clients = new ArrayList<>();
         servers = new ArrayList<>();

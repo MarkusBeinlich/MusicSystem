@@ -37,7 +37,7 @@ public class MusicPlayerDto implements MusicPlayerInterface, Serializable {
     
     @Override
     public String toString() {
-        return "\n" + title; 
+        return title; 
     }
     
 }

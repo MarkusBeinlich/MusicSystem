@@ -7,7 +7,7 @@ import java.util.*;
  *
  * @author Markus Beinlich
  */
-public class MusicSystemDto implements MusicSystemInterface, Serializable {
+public class MusicSystemDto implements MusicSystemInterfaceObserver, Serializable {
 
     private static final long serialVersionUID = -2859597019206036577L;
 
@@ -17,7 +17,7 @@ public class MusicSystemDto implements MusicSystemInterface, Serializable {
     public String location;
     public MusicPlayerDto activePlayer;
     public ServerAddr serverAddr;
-    public LinkedList<MusicPlayerDto> players;
+    public LinkedList<MusicPlayerInterface> players;
 
     @Override
     public MusicSystemDto getDto() {

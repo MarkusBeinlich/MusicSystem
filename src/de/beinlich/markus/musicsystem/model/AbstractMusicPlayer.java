@@ -416,7 +416,7 @@ abstract class AbstractMusicPlayer implements MusicPlayerInterface, MusicPlayerP
 
     @Override
     public String toString() {
-        return "\n" + title;
+        return  title;
     }
 
     /**
@@ -447,6 +447,11 @@ abstract class AbstractMusicPlayer implements MusicPlayerInterface, MusicPlayerP
     public void setVolume(double volume) {
         this.volume = volume;
         notifyVolumeObservers();
+    }
+    
+    @Override
+    public int hashCode() {
+        return title.hashCode();
     }
 
     @Override

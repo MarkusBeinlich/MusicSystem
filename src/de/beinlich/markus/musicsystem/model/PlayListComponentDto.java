@@ -30,7 +30,7 @@ public class PlayListComponentDto implements PlayListComponentInterface, Seriali
     public PlayListComponentDto getDto() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
-    
+
     @Override
     public String toString() {
         return this.getTitle() + ": " + this.getPlayingTime() + " sec";
@@ -39,5 +39,21 @@ public class PlayListComponentDto implements PlayListComponentInterface, Seriali
     @Override
     public int getUid() {
         return uid;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof PlayListComponentDto) {
+            PlayListComponentDto tr = (PlayListComponentDto) obj;
+            return (uid == tr.uid);
+        }
+        return super.equals(obj);
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 79 * hash + this.uid;
+        return hash;
     }
 }
