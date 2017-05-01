@@ -1,5 +1,14 @@
 package de.beinlich.markus.musicsystem.model;
 
+import de.beinlich.markus.musicsystem.lib.StateObserver;
+import de.beinlich.markus.musicsystem.lib.MusicPlayerObserver;
+import de.beinlich.markus.musicsystem.lib.PlayListComponentInterface;
+import de.beinlich.markus.musicsystem.lib.VolumeObserver;
+import de.beinlich.markus.musicsystem.lib.TrackTimeObserver;
+import de.beinlich.markus.musicsystem.lib.RecordObserver;
+import de.beinlich.markus.musicsystem.lib.TrackObserver;
+import de.beinlich.markus.musicsystem.lib.MusicPlayerInterface;
+import de.beinlich.markus.musicsystem.lib.MusicSystemState;
 import java.util.*;
 import java.util.logging.*;
 import org.junit.After;

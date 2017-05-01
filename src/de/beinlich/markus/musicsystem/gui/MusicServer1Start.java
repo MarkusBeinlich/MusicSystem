@@ -5,7 +5,8 @@
  */
 package de.beinlich.markus.musicsystem.gui;
 
-import de.beinlich.markus.musicsystem.model.net.MusicSystemControllerInterface;
+import de.beinlich.markus.musicsystem.lib.MusicSystemInterfaceObserver;
+import de.beinlich.markus.musicsystem.lib.MusicSystemControllerInterface;
 import de.beinlich.markus.musicsystem.model.*;
 
 /**

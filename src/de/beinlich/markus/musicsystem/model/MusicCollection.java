@@ -1,5 +1,9 @@
 package de.beinlich.markus.musicsystem.model;
 
+import de.beinlich.markus.musicsystem.lib.MusicCollectionObserver;
+import de.beinlich.markus.musicsystem.lib.RecordInterface;
+import de.beinlich.markus.musicsystem.lib.MusicCollectionInterface;
+import de.beinlich.markus.musicsystem.lib.MusicCollectionDto;
 import de.beinlich.markus.musicsystem.model.db.DatabaseConnection;
 import java.util.*;
 
@@ -33,7 +37,7 @@ class MusicCollection implements MusicCollectionInterface {
     public MusicCollectionDto getMusicCollectionDto() {
         MusicCollectionDto musicCollectionDto = new MusicCollectionDto();
         musicCollectionDto.records = new ArrayList<>();
-        for (Record record : records) {
+        for (RecordInterface record : records) {
             musicCollectionDto.records.add(record.getDto());
         }
         return musicCollectionDto;
@@ -46,7 +50,7 @@ class MusicCollection implements MusicCollectionInterface {
 
     @Override
     public RecordInterface getRecordById(int rid) {
-        for (Record record : records) {
+        for (RecordInterface record : records) {
             if (record.getRid() == rid) {
                 return record;
             }
@@ -54,7 +58,6 @@ class MusicCollection implements MusicCollectionInterface {
         return records.get(0);
     }
 
-    @Override
     public void addRecord(Record record) {
         records.add(record);
     }

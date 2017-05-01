@@ -1,6 +1,6 @@
 musicsystem =
         { 
-            "name": "Küchenradio2",
+            "name": "Küchenradio",
             "location": "Küche",
             "port": "50003",
             "musicplayers": [

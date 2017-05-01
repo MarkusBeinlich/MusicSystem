@@ -2,6 +2,7 @@
  */
 package de.beinlich.markus.musicsystem.model;
 
+import de.beinlich.markus.musicsystem.lib.*;
 import java.io.*;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -341,8 +342,8 @@ class MusicSystem implements MusicSystemInterfaceObserver {
     }
 
     @Override
-    public void setRecord(Record record) {
-        activePlayer.setRecord(record);
+    public void setRecord(RecordInterface record) {
+        activePlayer.setRecord((Record)record);
     }
 
     @Override

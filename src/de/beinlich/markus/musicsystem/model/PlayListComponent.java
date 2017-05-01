@@ -5,6 +5,8 @@
  */
 package de.beinlich.markus.musicsystem.model;
 
+import de.beinlich.markus.musicsystem.lib.PlayListComponentInterface;
+import de.beinlich.markus.musicsystem.lib.PlayListComponentDto;
 import java.io.Serializable;
 
 /**

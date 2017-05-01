@@ -3,6 +3,7 @@ package de.beinlich.markus.musicsystem.model.db;
 // DAO - data access object
 // TODO - externes Connection handling
 // TODO - prepared Statements
+import de.beinlich.markus.musicsystem.lib.PlayListComponentInterface;
 import de.beinlich.markus.musicsystem.model.*;
 import java.sql.*;
 import java.util.*;

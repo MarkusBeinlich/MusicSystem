@@ -6,8 +6,15 @@
 package de.beinlich.markus.musicsystem.gui;
 
 //import de.beinlich.markus.musicsystem.gui.MusicServerApp;
+import de.beinlich.markus.musicsystem.lib.IllegalePlayerException;
+import de.beinlich.markus.musicsystem.lib.MusicSystemInterfaceObserver;
+import de.beinlich.markus.musicsystem.lib.PlayListComponentInterface;
+import de.beinlich.markus.musicsystem.lib.RecordInterface;
+import de.beinlich.markus.musicsystem.lib.MusicCollectionInterface;
+import de.beinlich.markus.musicsystem.lib.PlayListComponentDto;
+import de.beinlich.markus.musicsystem.lib.RecordDto;
 import de.beinlich.markus.musicsystem.model.*;
-import de.beinlich.markus.musicsystem.model.net.MusicSystemControllerInterface;
+import de.beinlich.markus.musicsystem.lib.MusicSystemControllerInterface;
 import java.lang.reflect.InvocationTargetException;
 import java.util.logging.*;
 
