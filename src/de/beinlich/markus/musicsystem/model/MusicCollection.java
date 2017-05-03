@@ -1,9 +1,5 @@
 package de.beinlich.markus.musicsystem.model;
 
-import de.beinlich.markus.musicsystem.lib.MusicCollectionObserver;
-import de.beinlich.markus.musicsystem.lib.RecordInterface;
-import de.beinlich.markus.musicsystem.lib.MusicCollectionInterface;
-import de.beinlich.markus.musicsystem.lib.MusicCollectionDto;
 import de.beinlich.markus.musicsystem.model.db.DatabaseConnection;
 import java.util.*;
 

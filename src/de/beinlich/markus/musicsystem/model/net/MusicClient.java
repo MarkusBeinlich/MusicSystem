@@ -5,8 +5,10 @@
  */
 package de.beinlich.markus.musicsystem.model.net;
 
-import de.beinlich.markus.musicsystem.lib.*;
-import static de.beinlich.markus.musicsystem.lib.ProtokollType.*;
+import de.beinlich.markus.musicsystem.model.TrackObserver;
+import de.beinlich.markus.musicsystem.model.TrackTimeObserver;
+import de.beinlich.markus.musicsystem.model.VolumeObserver;
+import static de.beinlich.markus.musicsystem.model.net.ProtokollType.*;
 //import de.beinlich.markus.musicsystem.gui.*;
 import de.beinlich.markus.musicsystem.model.*;
 import java.io.*;

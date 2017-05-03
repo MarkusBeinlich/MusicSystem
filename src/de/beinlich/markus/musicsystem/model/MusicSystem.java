@@ -2,7 +2,8 @@
  */
 package de.beinlich.markus.musicsystem.model;
 
-import de.beinlich.markus.musicsystem.lib.*;
+import de.beinlich.markus.musicsystem.model.net.ServerPoolObserver;
+import de.beinlich.markus.musicsystem.model.net.ServerAddr;
 import java.io.*;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -38,7 +39,7 @@ class MusicSystem implements MusicSystemInterfaceObserver {
     private String location;
     private AbstractMusicPlayer activePlayer;
     private ServerAddr serverAddr;
-    final private LinkedList<MusicPlayerInterface> players;
+    final private LinkedList<AbstractMusicPlayer> players;
 
     private transient final ArrayList<MusicPlayerObserver> musicPlayerObservers = new ArrayList<>();
 
@@ -293,9 +294,12 @@ class MusicSystem implements MusicSystemInterfaceObserver {
         this.activePlayer = (AbstractMusicPlayer) activePlayer;
 
         notifyMusicPlayerObservers();
+//        this.activePlayer.notifyRecordObservers();
+//        this.activePlayer.notifyTrackObservers();
+//        this.activePlayer.notifyStateObservers();
     }
 
-    private void addPlayer(MusicPlayerInterface player) {
+    private void addPlayer(AbstractMusicPlayer player) {
         players.add(player);
         notifyMusicPlayerObservers();
     }

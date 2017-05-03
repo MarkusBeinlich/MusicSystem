@@ -12,7 +12,6 @@
  */
 package de.beinlich.markus.musicsystem.model;
 
-import de.beinlich.markus.musicsystem.lib.MusicSystemState;
 import java.io.*;
 import java.nio.file.Path;
 import java.util.logging.Level;

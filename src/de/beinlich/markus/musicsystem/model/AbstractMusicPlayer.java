@@ -5,15 +5,6 @@
  */
 package de.beinlich.markus.musicsystem.model;
 
-import de.beinlich.markus.musicsystem.lib.StateObserver;
-import de.beinlich.markus.musicsystem.lib.MusicPlayerObserver;
-import de.beinlich.markus.musicsystem.lib.VolumeObserver;
-import de.beinlich.markus.musicsystem.lib.TrackTimeObserver;
-import de.beinlich.markus.musicsystem.lib.RecordObserver;
-import de.beinlich.markus.musicsystem.lib.TrackObserver;
-import de.beinlich.markus.musicsystem.lib.MusicPlayerInterface;
-import de.beinlich.markus.musicsystem.lib.MusicPlayerDto;
-import de.beinlich.markus.musicsystem.lib.MusicSystemState;
 import java.util.*;
 
 /**
@@ -225,11 +216,11 @@ abstract class AbstractMusicPlayer implements MusicPlayerInterface, MusicPlayerP
         //Durch Polymorphie wird z.B. beim Radio der RadioRun Prozess gestoppt.
         stop();
         this.record = record;
-        //
         if (record != null && record.getTracks().size() > 0) {
             setCurrentTrack((PlayListComponent) record.getTracks().get(0));
         }
         notifyRecordObservers();
+        notifyTrackObservers();
     }
 
     @Override
@@ -425,7 +416,7 @@ abstract class AbstractMusicPlayer implements MusicPlayerInterface, MusicPlayerP
 
     @Override
     public String toString() {
-        return  title;
+        return title;
     }
 
     /**
@@ -457,7 +448,7 @@ abstract class AbstractMusicPlayer implements MusicPlayerInterface, MusicPlayerP
         this.volume = volume;
         notifyVolumeObservers();
     }
-    
+
     @Override
     public int hashCode() {
         return title.hashCode();

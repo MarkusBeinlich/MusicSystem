@@ -5,19 +5,6 @@
  */
 package de.beinlich.markus.musicsystem.gui;
 
-import de.beinlich.markus.musicsystem.lib.MusicSystemControllerInterface;
-import de.beinlich.markus.musicsystem.lib.StateObserver;
-import de.beinlich.markus.musicsystem.lib.MusicPlayerObserver;
-import de.beinlich.markus.musicsystem.lib.MusicCollectionObserver;
-import de.beinlich.markus.musicsystem.lib.MusicSystemInterfaceObserver;
-import de.beinlich.markus.musicsystem.lib.PlayListComponentInterface;
-import de.beinlich.markus.musicsystem.lib.VolumeObserver;
-import de.beinlich.markus.musicsystem.lib.TrackTimeObserver;
-import de.beinlich.markus.musicsystem.lib.RecordObserver;
-import de.beinlich.markus.musicsystem.lib.TrackObserver;
-import de.beinlich.markus.musicsystem.lib.RecordInterface;
-import de.beinlich.markus.musicsystem.lib.MusicCollectionInterface;
-import de.beinlich.markus.musicsystem.lib.MusicPlayerInterface;
 import de.beinlich.markus.musicsystem.model.net.*;
 import de.beinlich.markus.musicsystem.model.*;
 import java.awt.EventQueue;

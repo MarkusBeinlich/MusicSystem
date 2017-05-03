@@ -5,8 +5,6 @@
  */
 package de.beinlich.markus.musicsystem.model;
 
-import de.beinlich.markus.musicsystem.lib.MusicSystemState;
-
 /**
  *
  * @author Markus Beinlich

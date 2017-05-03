@@ -1,27 +1,7 @@
 package de.beinlich.markus.musicsystem.model.net;
 
-import de.beinlich.markus.musicsystem.lib.NetProperties;
-import de.beinlich.markus.musicsystem.lib.MusicSystemControllerInterface;
-import de.beinlich.markus.musicsystem.lib.StateObserver;
-import de.beinlich.markus.musicsystem.lib.MusicPlayerObserver;
-import de.beinlich.markus.musicsystem.lib.MusicCollectionObserver;
-import de.beinlich.markus.musicsystem.lib.MusicSystemInterfaceObserver;
-import de.beinlich.markus.musicsystem.lib.PlayListComponentInterface;
-import de.beinlich.markus.musicsystem.lib.VolumeObserver;
-import de.beinlich.markus.musicsystem.lib.TrackTimeObserver;
-import de.beinlich.markus.musicsystem.lib.RecordObserver;
-import de.beinlich.markus.musicsystem.lib.TrackObserver;
-import de.beinlich.markus.musicsystem.lib.RecordInterface;
-import de.beinlich.markus.musicsystem.lib.MusicCollectionInterface;
-import de.beinlich.markus.musicsystem.lib.ClientInit;
-import de.beinlich.markus.musicsystem.lib.MusicPlayerInterface;
-import de.beinlich.markus.musicsystem.lib.ServerPool;
-import de.beinlich.markus.musicsystem.lib.ServerAddr;
-import de.beinlich.markus.musicsystem.lib.MusicSystemState;
-import de.beinlich.markus.musicsystem.lib.MusicSystemInterface;
-import de.beinlich.markus.musicsystem.lib.Protokoll;
 import de.beinlich.markus.musicsystem.model.*;
-import static de.beinlich.markus.musicsystem.lib.ProtokollType.*;
+import static de.beinlich.markus.musicsystem.model.net.ProtokollType.*;
 import java.io.*;
 import java.net.*;
 import java.util.*;
@@ -447,8 +427,9 @@ public class MusicServer extends SwingWorker<Void, Void> implements VolumeObserv
         musicCollection.registerObserver((MusicCollectionObserver) this);
         try {
             talkToAll(new Protokoll(MUSIC_PLAYER_DTO, musicSystem.getActivePlayer().getDto()));
-            talkToAll(new Protokoll(RECORD_DTO, musicSystem.getRecord().getDto()));
-            talkToAll(new Protokoll(STATE, musicSystem.getMusicSystemState()));
+//            talkToAll(new Protokoll(RECORD_DTO, musicSystem.getRecord().getDto()));
+//            talkToAll(new Protokoll(PLAY_LIST_COMPONENT_DTO, musicSystem.getRecord().getTracks().get(0).getDto()));
+//            talkToAll(new Protokoll(STATE, musicSystem.getMusicSystemState()));
 
         } catch (InvalidObjectException ex) {
             Logger.getLogger(MusicServer.class

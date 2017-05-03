@@ -5,7 +5,6 @@
  */
 package de.beinlich.markus.musicsystem.model;
 
-import de.beinlich.markus.musicsystem.lib.MusicSystemState;
 import de.beinlich.markus.musicsystem.model.db.*;
 import javafx.embed.swing.*;
 import javafx.scene.media.*;
