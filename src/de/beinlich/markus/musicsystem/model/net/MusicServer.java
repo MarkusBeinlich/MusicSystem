@@ -8,7 +8,7 @@ import java.util.*;
 import java.util.logging.*;
 import javax.swing.SwingWorker;
 
-public class MusicServer extends SwingWorker<Void, Void> implements VolumeObserver, TrackTimeObserver, TrackObserver, StateObserver, RecordObserver, MusicPlayerObserver, MusicCollectionObserver {
+public class MusicServer extends SwingWorker<Void, Void> implements Observer, VolumeObserver, TrackTimeObserver, TrackObserver, StateObserver, RecordObserver, MusicPlayerObserver, MusicCollectionObserver {
 
     private final List<ObjectOutputStream> clients;
     private final List<ObjectOutputStream> servers;
@@ -60,9 +60,10 @@ public class MusicServer extends SwingWorker<Void, Void> implements VolumeObserv
                 System.out.println("Port2: " + netProperties.getProperty("net.port"));
             }
 
-            Thread musicServerFinderThread = new Thread(new MusicServerFinder());
-            musicServerFinderThread.setDaemon(true);
-            musicServerFinderThread.start();
+            serverPool.findServers();
+//            Thread musicServerFinderThread = new Thread(new MusicServerFinder());
+//            musicServerFinderThread.setDaemon(true);
+//            musicServerFinderThread.start();
 
             Socket socket;
             while (true) {
@@ -122,57 +123,13 @@ public class MusicServer extends SwingWorker<Void, Void> implements VolumeObserv
         }
     }
 
-    public class MusicServerFinder implements Runnable {
-
-        @Override
-        public void run() {
-            //Nach weiteren aktiven IP-Adresse im LAN suchen 
-            tryAllAddressesOnLan();
-
-        }
-
-        private void tryAllAddressesOnLan() {
-            InetAddress localhost;
-            try {
-                localhost = InetAddress.getLocalHost();
-            } catch (UnknownHostException ex) {
-                Logger.getLogger(MusicServer.class.getName()).log(Level.SEVERE, null, ex);
-                return;
-            }
-            byte[] ip = localhost.getAddress();
-
-            for (int i = 1; i <= 254; i++) {
-                try {
-                    ip[3] = (byte) i;
-                    InetAddress address = InetAddress.getByAddress(ip);
-                    tryAddress(address);
-                } catch (UnknownHostException e) {
-                    Logger.getLogger(MusicServer.class.getName()).log(Level.SEVERE, null, e);
-                }
-            }
-        }
-
-        private void tryAddress(InetAddress address) {
-            try {
-                if (address.isReachable(10)) {
-                    System.out.println(address.toString().substring(1) + " is on the network");
-                    tryAllPorts(address.getHostAddress());
-                }
-            } catch (IOException ex) {
-                Logger.getLogger(MusicServer.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-
-        private void tryAllPorts(String hostAddress) {
-            for (int j = 1; j <= 3; j++) {
-                tryToConnectServer(hostAddress, 50000 + j);
-            }
-        }
-
-        private void tryToConnectServer(String hostAddress, int port) {
+    @Override
+    public void update(Observable o, Object arg) {
+        if (o instanceof ServerPool && arg instanceof ServerAddr) {
             Socket socket;
+            ServerAddr serverAddr = (ServerAddr) arg;
             try {
-                socket = new Socket(hostAddress, port);
+                socket = new Socket(serverAddr.getServer_ip(), serverAddr.getPort());
                 System.out.println(System.currentTimeMillis() + "socket.connect");
                 new Thread(new ClientHandler(socket, MusicServer.this, true)).start();
             } catch (ConnectException e) {
@@ -183,9 +140,9 @@ public class MusicServer extends SwingWorker<Void, Void> implements VolumeObserv
                 Logger.getLogger(MusicServer.class.getName()).log(Level.SEVERE, null, e);
             }
         }
-
     }
 
+    
     public class ClientHandler implements Runnable {
 
         private ObjectInputStream ois;
