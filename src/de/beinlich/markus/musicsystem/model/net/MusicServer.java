@@ -128,23 +128,29 @@ public class MusicServer extends SwingWorker<Void, Void> implements Observer, Vo
         if (o instanceof ServerPool && arg instanceof ServerAddr) {
             Socket socket;
             ServerAddr serverAddr = (ServerAddr) arg;
-            try {
-                socket = new Socket(serverAddr.getServer_ip(), serverAddr.getPort());
-                System.out.println(System.currentTimeMillis() + "socket.connect");
-                new Thread(new ClientHandler(socket, MusicServer.this, true)).start();
-            } catch (ConnectException e) {
-                System.out.println(System.currentTimeMillis() + "Error while connecting. " + e.getMessage());
-            } catch (SocketTimeoutException e) {
-                System.out.println(System.currentTimeMillis() + "Connection: " + e.getMessage() + ".");
-            } catch (IOException e) {
-                Logger.getLogger(MusicServer.class.getName()).log(Level.SEVERE, null, e);
+            //nicht mit sich selbst eine Verbindung aufbauen
+            if (musicSystem.getServerAddr().getServer_ip().equals(serverAddr.getServer_ip())
+                    && musicSystem.getServerAddr().getPort() == serverAddr.getPort()) {
+                System.out.println("Do not connect to yourselve.");
+            } else {
+                try {
+                    socket = new Socket(serverAddr.getServer_ip(), serverAddr.getPort());
+                    System.out.println(System.currentTimeMillis() + "socket.connect");
+                    new Thread(new ClientHandler(socket, MusicServer.this, true)).start();
+                } catch (ConnectException e) {
+                    System.out.println(System.currentTimeMillis() + "Error while connecting. " + e.getMessage());
+                } catch (SocketTimeoutException e) {
+                    System.out.println(System.currentTimeMillis() + "Connection: " + e.getMessage() + ".");
+                } catch (IOException e) {
+                    Logger.getLogger(MusicServer.class.getName()).log(Level.SEVERE, null, e);
+                }
             }
         }
     }
 
-    
     public class ClientHandler implements Runnable {
-
+        
+        private Socket socket;
         private ObjectInputStream ois;
         private ObjectOutputStream oos;
         private String name;
@@ -153,6 +159,7 @@ public class MusicServer extends SwingWorker<Void, Void> implements Observer, Vo
         private MusicSystemControllerInterface musicSystemController;
 
         public ClientHandler(Socket socket, MusicServer musicServer, boolean isServer) {
+            this.socket = socket;
             this.musicServer = musicServer;
             this.musicSystem = musicServer.musicSystem;
             this.musicSystemController = musicServer.musicSystemController;
@@ -187,6 +194,10 @@ public class MusicServer extends SwingWorker<Void, Void> implements Observer, Vo
                 o = ois.readObject();
                 protokoll = (Protokoll) o;
                 switch (protokoll.getProtokollType()) {
+                    case SERVER_ADDR_REQUEST:
+                        oos.writeObject(new Protokoll(SERVER_ADDR, musicSystem.getServerAddr()));
+                        oos.flush();
+                        break;
                     case SERVER_ADDR:
                         servers.add(oos);
                         serverAddr = (ServerAddr) protokoll.getValue();
@@ -293,6 +304,10 @@ public class MusicServer extends SwingWorker<Void, Void> implements Observer, Vo
                                 musicSystemController.stop();
                                 System.out.println(System.currentTimeMillis() + "STOP done");
                             }
+                            break;
+                        case CLIENT_DISCONNECT:
+                            clients.remove(oos);
+                            socket.close();
                             break;
                         default:
                             System.out.println(System.currentTimeMillis() + "Unbekannte Nachricht:" + protokoll.getProtokollType());
