@@ -182,7 +182,7 @@ public class MusicServer extends SwingWorker<Void, Void> implements Observer, Vo
             Object o;
             Protokoll protokoll;
             ServerAddr serverAddr;
-            ServerPool serverPool;
+            Map<String, ServerAddr> servers;
             RecordInterface record;
             String musicPlayerTitle;
             MusicPlayerInterface musicPlayer;
@@ -190,56 +190,7 @@ public class MusicServer extends SwingWorker<Void, Void> implements Observer, Vo
 
             try {
                 // Liest als erste Zeile den Namen des Client bzw des Servers
-                o = ois.readObject();
-                System.out.println(System.currentTimeMillis() + "Server gelesen Object:" + o);
-                protokoll = (Protokoll) o;
-                switch (protokoll.getProtokollType()) {
-                    case SERVER_ADDR_REQUEST:
-                        serverAddr = (ServerAddr) protokoll.getValue();
-                        if (serverAddr != null) {
-                            ServerPool.getInstance(musicSystem.getServerAddr()).addServer(serverAddr.getName(), serverAddr);
-                            // Clients auch noch über den aktuellen Serverpool informieren
-                            talkToAll(new Protokoll(SERVER_POOL, ServerPool.getInstance(musicSystem.getServerAddr())));
-                        }
-                        oos.writeObject(new Protokoll(SERVER_ADDR, musicSystem.getServerAddr()));
-                        oos.flush();
-                        break;
-                    case SERVER_ADDR:
-                        servers.add(oos);
-                        serverAddr = (ServerAddr) protokoll.getValue();
-                        System.out.println(System.currentTimeMillis() + "SERVER: habe eine Verbindung mit " + serverAddr.getName());
-                        ServerPool.getInstance(musicSystem.getServerAddr()).addServer(serverAddr.getName(), serverAddr);
-                        //Information über aktiven Server an alle aktiven Server weitergeben.
-                        //Anderen Protokolltype verwenden, damit keine Endlosschleife entsteht.
-                        talkToAllServer(new Protokoll(SERVER_POOL, ServerPool.getInstance(musicSystem.getServerAddr())));
-                        // Clients auch noch über den aktuellen Serverpool informieren
-                        talkToAll(new Protokoll(SERVER_POOL, ServerPool.getInstance(musicSystem.getServerAddr())));
-                        break;
-                    case SERVER_POOL:
-                        serverPool = (ServerPool) protokoll.getValue();
-                        ServerPool.getInstance(musicSystem.getServerAddr()).addServers(serverPool);
-                        break;
-                    case CLIENT_NAME:
-                        clients.add(oos);
-                        name = (String) protokoll.getValue();
-                        System.out.println(System.currentTimeMillis() + "SERVER: habe eine Verbindung mit " + name);
-                        //Dem Client zur Initialisierung das init-Object mit hifi-Objekt, MusicCollection und ServerPool schicken 
-                        try {
-                            System.out.println(System.currentTimeMillis() + "MusicSystem in run " + musicSystem);
-                            protokoll = new Protokoll(CLIENT_INIT,
-                                    new ClientInit(musicSystem.getDto(),
-                                            musicServer.musicCollection.getMusicCollectionDto(),
-                                            musicServer.getServerPool()));
-                            oos.writeObject(protokoll);
-                            oos.flush();
-                        } catch (IOException ex) {
-                            System.out.println(ex);
-                        }
-                        break;
-                    default:
-                        System.out.println(System.currentTimeMillis() + "Unbekannte Nachricht:" + protokoll.getProtokollType());
-                        throw new NoSuchElementException("Unbekannte Nachricht:" + protokoll.getProtokollType());
-                }
+//                 
 
                 System.out.println(System.currentTimeMillis() + "Warten auf Nachrichten");
                 while (true) {
@@ -249,9 +200,47 @@ public class MusicServer extends SwingWorker<Void, Void> implements Observer, Vo
                     System.out.println(System.currentTimeMillis() + "Server gelesen Object:" + o);
                     protokoll = (Protokoll) o;
                     switch (protokoll.getProtokollType()) {
+                        case SERVER_ADDR_REQUEST:
+//                        serverAddr = (ServerAddr) protokoll.getValue();
+//                        if (serverAddr != null) {
+//                            ServerPool.getInstance(musicSystem.getServerAddr()).addServer(serverAddr.getName(), serverAddr);
+//                            // Clients auch noch über den aktuellen Serverpool informieren
+//                            talkToAll(new Protokoll(SERVER_POOL, ServerPool.getInstance(musicSystem.getServerAddr())));
+//                        }
+                            oos.writeObject(new Protokoll(SERVER_ADDR, musicSystem.getServerAddr()));
+                            oos.flush();
+                            break;
+                        case SERVER_ADDR:
+//                        servers.add(oos);
+                            serverAddr = (ServerAddr) protokoll.getValue();
+                            System.out.println(System.currentTimeMillis() + "SERVER: habe eine Verbindung mit " + serverAddr.getName());
+                            ServerPool.getInstance(musicSystem.getServerAddr()).addServer(serverAddr.getName(), serverAddr);
+                            //Information über aktiven Server an alle aktiven Server weitergeben.
+                            //Anderen Protokolltype verwenden, damit keine Endlosschleife entsteht.
+//                        talkToAllServer(new Protokoll(SERVER_POOL, ServerPool.getInstance(musicSystem.getServerAddr())));
+                            // Clients auch noch über den aktuellen Serverpool informieren
+                            talkToAll(new Protokoll(SERVER_POOL, ServerPool.getInstance(musicSystem.getServerAddr()).getServers()));
+                            break;
+                        case CLIENT_NAME:
+                            clients.add(oos);
+                            name = (String) protokoll.getValue();
+                            System.out.println(System.currentTimeMillis() + "SERVER: habe eine Verbindung mit " + name);
+                            //Dem Client zur Initialisierung das init-Object mit hifi-Objekt, MusicCollection und ServerPool schicken 
+                            try {
+                                System.out.println(System.currentTimeMillis() + "MusicSystem in run " + musicSystem);
+                                protokoll = new Protokoll(CLIENT_INIT,
+                                        new ClientInit(musicSystem.getDto(),
+                                                musicServer.musicCollection.getMusicCollectionDto(),
+                                                musicServer.getServerPool()));
+                                oos.writeObject(protokoll);
+                                oos.flush();
+                            } catch (IOException ex) {
+                                System.out.println(ex);
+                            }
+                            break;
                         case SERVER_POOL:
-                            serverPool = (ServerPool) protokoll.getValue();
-                            ServerPool.getInstance(musicSystem.getServerAddr()).addServers(serverPool);
+                            servers = (Map<String, ServerAddr>) protokoll.getValue();
+                            ServerPool.getInstance(musicSystem.getServerAddr()).addServers(servers);
                             break;
                         case MUSIC_PLAYER_SELECTED:
                             //Achtung: Rückkopplung vermeiden

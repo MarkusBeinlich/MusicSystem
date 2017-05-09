@@ -133,7 +133,7 @@ public class MusicClient extends SwingWorker<Void, Void> implements MusicSystemI
 //                mca.setClientInit(clientInit);
                 musicSystem = clientInit.getMusicSystem();
                 musicCollection = clientInit.getMusicCollection();
-                ServerPool.getInstance(null).addServers(clientInit.getServerPool());
+                ServerPool.getInstance(null).addServers(clientInit.getServerPool().getServers());
                 musicSystemState = musicSystem.activePlayer.musicSystemState;
                 record = musicSystem.activePlayer.record;
                 musicPlayer = musicSystem.activePlayer;
@@ -740,7 +740,7 @@ public class MusicClient extends SwingWorker<Void, Void> implements MusicSystemI
                             }
                             break;
                         case SERVER_POOL:
-                            musicClient.serverPool = (ServerPool) nachricht.getValue();
+                            musicClient.serverPool.addServers((Map<String, ServerAddr>) nachricht.getValue());
                             notifyServerPoolObservers();
 //                            mca.updateServerPool(musicClient.serverPool);
                             break;
