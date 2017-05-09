@@ -63,7 +63,7 @@ public class MusicClient extends SwingWorker<Void, Void> implements MusicSystemI
     public MusicClient(String clientName) {
 //        this.mca = mca;
         this.clientName = clientName;
-        serverPool = ServerPool.getInstance(clientName);
+        serverPool = ServerPool.getInstance(null);
         currentServerAddr = serverPool.getFirstServer();
         System.out.println("Alle:" + serverPool.toString());
         System.out.println("currentServerAddr: " + currentServerAddr);
@@ -133,7 +133,7 @@ public class MusicClient extends SwingWorker<Void, Void> implements MusicSystemI
 //                mca.setClientInit(clientInit);
                 musicSystem = clientInit.getMusicSystem();
                 musicCollection = clientInit.getMusicCollection();
-                ServerPool.getInstance(clientName).addServers(clientInit.getServerPool());
+                ServerPool.getInstance(null).addServers(clientInit.getServerPool());
                 musicSystemState = musicSystem.activePlayer.musicSystemState;
                 record = musicSystem.activePlayer.record;
                 musicPlayer = musicSystem.activePlayer;
@@ -228,7 +228,7 @@ public class MusicClient extends SwingWorker<Void, Void> implements MusicSystemI
         ServerAddr serverAddr;
         System.out.println("switchToServer:" + newServer);
         serverAddr = serverPool.getServers().get(newServer);
-        System.out.println("switchToServer:" + serverAddr + ServerPool.getInstance(clientName));
+        System.out.println("switchToServer:" + serverAddr + ServerPool.getInstance(null));
 
         try {
             //wenn es geklappt hat, kann die Verbindung zum alten Server getrennt werden
