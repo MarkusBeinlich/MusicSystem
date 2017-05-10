@@ -8,7 +8,7 @@ import java.util.*;
 import java.util.logging.*;
 import javax.swing.SwingWorker;
 
-public class MusicServer extends SwingWorker<Void, Void> implements Observer, VolumeObserver, TrackTimeObserver, TrackObserver, StateObserver, RecordObserver, MusicPlayerObserver, MusicCollectionObserver {
+public class MusicServer extends SwingWorker<Void, Void> implements VolumeObserver, TrackTimeObserver, TrackObserver, StateObserver, RecordObserver, MusicPlayerObserver, MusicCollectionObserver {
 
     private final List<ObjectOutputStream> clients;
     private final List<ObjectOutputStream> servers;
@@ -17,6 +17,7 @@ public class MusicServer extends SwingWorker<Void, Void> implements Observer, Vo
     private final MusicSystemControllerInterface musicSystemController;
     private MusicCollectionInterface musicCollection;
     private final ServerPool serverPool;
+    private final ServerFinder serverFinder;
     private final String name;
 
     public MusicServer(MusicSystemControllerInterface musicSystemController, MusicSystemInterfaceObserver musicSystem) {
@@ -30,7 +31,9 @@ public class MusicServer extends SwingWorker<Void, Void> implements Observer, Vo
         name = musicSystem.getMusicSystemName();
         musicCollection = MusicCollectionCreator.getInstance(musicSystem.getActivePlayer().getClass().getSimpleName());
         musicSystem.setRecord((Record) musicCollection.getRecord());
-        serverPool = ServerPool.getInstance(musicSystem.getServerAddr());
+        serverPool = ServerPool.getInstance();
+        serverFinder = new ServerFinder(serverPool, musicSystem.getServerAddr());
+        serverFinder.findServers();
 
         musicSystem.registerObserver((VolumeObserver) this);
         musicSystem.registerObserver((TrackTimeObserver) this);
@@ -122,31 +125,6 @@ public class MusicServer extends SwingWorker<Void, Void> implements Observer, Vo
         }
     }
 
-    @Override
-    public void update(Observable o, Object arg) {
-        if (o instanceof ServerPool && arg instanceof ServerAddr) {
-            Socket socket;
-            ServerAddr serverAddr = (ServerAddr) arg;
-            //nicht mit sich selbst eine Verbindung aufbauen
-            if (musicSystem.getServerAddr().getServer_ip().equals(serverAddr.getServer_ip())
-                    && musicSystem.getServerAddr().getPort() == serverAddr.getPort()) {
-                System.out.println("Do not connect to yourselve.");
-            } else {
-                try {
-                    socket = new Socket(serverAddr.getServer_ip(), serverAddr.getPort());
-                    System.out.println(System.currentTimeMillis() + "socket.connect");
-                    new Thread(new ClientHandler(socket, MusicServer.this, true)).start();
-                } catch (ConnectException e) {
-                    System.out.println(System.currentTimeMillis() + "Error while connecting. " + e.getMessage());
-                } catch (SocketTimeoutException e) {
-                    System.out.println(System.currentTimeMillis() + "Connection: " + e.getMessage() + ".");
-                } catch (IOException e) {
-                    Logger.getLogger(MusicServer.class.getName()).log(Level.SEVERE, null, e);
-                }
-            }
-        }
-    }
-
     public class ClientHandler implements Runnable {
 
         private Socket socket;
@@ -214,12 +192,12 @@ public class MusicServer extends SwingWorker<Void, Void> implements Observer, Vo
 //                        servers.add(oos);
                             serverAddr = (ServerAddr) protokoll.getValue();
                             System.out.println(System.currentTimeMillis() + "SERVER: habe eine Verbindung mit " + serverAddr.getName());
-                            ServerPool.getInstance(musicSystem.getServerAddr()).addServer(serverAddr.getName(), serverAddr);
+                            ServerPool.getInstance().addServer(serverAddr.getName(), serverAddr);
                             //Information über aktiven Server an alle aktiven Server weitergeben.
                             //Anderen Protokolltype verwenden, damit keine Endlosschleife entsteht.
 //                        talkToAllServer(new Protokoll(SERVER_POOL, ServerPool.getInstance(musicSystem.getServerAddr())));
                             // Clients auch noch über den aktuellen Serverpool informieren
-                            talkToAll(new Protokoll(SERVER_POOL, ServerPool.getInstance(musicSystem.getServerAddr()).getServers()));
+                            talkToAll(new Protokoll(SERVER_POOL, ServerPool.getInstance().getServers()));
                             break;
                         case CLIENT_NAME:
                             clients.add(oos);
@@ -240,7 +218,7 @@ public class MusicServer extends SwingWorker<Void, Void> implements Observer, Vo
                             break;
                         case SERVER_POOL:
                             servers = (Map<String, ServerAddr>) protokoll.getValue();
-                            ServerPool.getInstance(musicSystem.getServerAddr()).addServers(servers);
+                            ServerPool.getInstance().addServers(servers);
                             break;
                         case MUSIC_PLAYER_SELECTED:
                             //Achtung: Rückkopplung vermeiden

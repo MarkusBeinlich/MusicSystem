@@ -63,49 +63,58 @@ public class MusicClient extends SwingWorker<Void, Void> implements MusicSystemI
     public MusicClient(String clientName) {
 //        this.mca = mca;
         this.clientName = clientName;
-        serverPool = ServerPool.getInstance(null);
-        currentServerAddr = serverPool.getFirstServer();
+        serverPool = ServerPool.getInstance();
+        currentServerAddr = null;
         System.out.println("Alle:" + serverPool.toString());
         System.out.println("currentServerAddr: " + currentServerAddr);
-        netzwerkEinrichten(currentServerAddr);
+        netzwerkEinrichten();
         musicSystemObjectRead();
         startReaderThread();
         System.out.println(System.currentTimeMillis() + "netzwerk eingerichtet: ");
     }
 
-    private void netzwerkEinrichten(ServerAddr serverAddr) {
-
-        try {
-            // Erzeugung eines Socket-Objekts
-            //                  Rechner (Adresse / Name)
-            //                  |            Port
-
-            //Verbindungs-Parameter in property-file auslagern
-            NetProperties netProperties = new NetProperties();
-            System.out.println(System.currentTimeMillis() + "new Socket with " + serverAddr.getServer_ip() + serverAddr.getPort());
-//            socket = new Socket("127.0.0.1", serverAddr.getPort());
-//            socket = new Socket(InetAddress.getLocalHost(), serverAddr.getPort());
-//            socket = new Socket("192.168.178.38", 50001);
-            if (serverAddr.getServer_ip().equals("127.0.0.1")) {
-                throw new ConnectException();
+    private void netzwerkEinrichten() {
+        ServerFinder serverFinder;
+        serverPool = ServerPool.getInstance();
+        serverFinder = new ServerFinder(serverPool, null);
+        serverFinder.findServers();
+//        serverPool.findServers();
+        System.out.println("Alle:" + serverPool.toString());
+        while (socket == null) {
+            for (Map.Entry<String, ServerAddr> poolEntry : serverPool.getServers().entrySet()) {
+                ServerAddr serverAddr = poolEntry.getValue();
+                System.out.println("ServerAddr1: " + serverAddr);
+                try {
+                    NetProperties netProperties = new NetProperties();
+                    System.out.println(System.currentTimeMillis() + "new Socket with " + serverAddr.getServer_ip() + serverAddr.getPort());
+                    if (serverAddr.getServer_ip().equals("127.0.0.1")) {
+                        throw new ConnectException();
+                    }
+                    socket = new Socket(serverAddr.getServer_ip(), serverAddr.getPort());
+                    // Erzeugung der Kommunikations-Objekte
+                    ois = new ObjectInputStream(socket.getInputStream());
+                    System.out.println(System.currentTimeMillis() + "socket.connect 2");
+                    oos = new ObjectOutputStream(socket.getOutputStream());
+                    break;
+                } catch (ConnectException e) {
+                    System.out.println(System.currentTimeMillis() + "Error while connecting. " + e.getMessage());
+                } catch (SocketTimeoutException e) {
+                    System.out.println(System.currentTimeMillis() + "Connection: " + e.getMessage() + ".");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
-            socket = new Socket(serverAddr.getServer_ip(), serverAddr.getPort());
-            System.out.println(System.currentTimeMillis() + "socket.connect");
-            //socket.connect(socket.getRemoteSocketAddress() , 0);
-            // Erzeugung der Kommunikations-Objekte
-            ois = new ObjectInputStream(socket.getInputStream());
-            System.out.println(System.currentTimeMillis() + "socket.connect 2");
-            oos = new ObjectOutputStream(socket.getOutputStream());
-        } catch (ConnectException e) {
-            System.out.println(System.currentTimeMillis() + "Error while connecting. " + e.getMessage());
-            this.tryToReconnect();
-        } catch (SocketTimeoutException e) {
-            System.out.println(System.currentTimeMillis() + "Connection: " + e.getMessage() + ".");
-            this.tryToReconnect();
-        } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println(System.currentTimeMillis() + "socket.connect3");
+            if (socket == null) {
+                serverFinder.findServers();
+                try {
+                    Thread.sleep(10_000);
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(MusicClient.class.getName()).log(Level.SEVERE, null, ex);
+                }
+
+            }
         }
-        System.out.println(System.currentTimeMillis() + "socket.connect3");
     }
 
     private void startReaderThread() {
@@ -133,7 +142,7 @@ public class MusicClient extends SwingWorker<Void, Void> implements MusicSystemI
 //                mca.setClientInit(clientInit);
                 musicSystem = clientInit.getMusicSystem();
                 musicCollection = clientInit.getMusicCollection();
-                ServerPool.getInstance(null).addServers(clientInit.getServerPool().getServers());
+                ServerPool.getInstance().addServers(clientInit.getServerPool().getServers());
                 musicSystemState = musicSystem.activePlayer.musicSystemState;
                 record = musicSystem.activePlayer.record;
                 musicPlayer = musicSystem.activePlayer;
@@ -167,68 +176,11 @@ public class MusicClient extends SwingWorker<Void, Void> implements MusicSystemI
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
-    private void tryToReconnect() {
-        tryAllAddressesOnLan();
-    }
-
-    private void tryAllAddressesOnLan() {
-        InetAddress localhost;
-        try {
-            localhost = InetAddress.getLocalHost();
-        } catch (UnknownHostException ex) {
-            Logger.getLogger(MusicServer.class.getName()).log(Level.SEVERE, null, ex);
-            return;
-        }
-        byte[] ip = localhost.getAddress();
-
-        for (int i = 1; i <= 254; i++) {
-            try {
-                ip[3] = (byte) i;
-                InetAddress address = InetAddress.getByAddress(ip);
-                tryAddress(address);
-            } catch (UnknownHostException e) {
-                Logger.getLogger(MusicServer.class.getName()).log(Level.SEVERE, null, e);
-            }
-        }
-    }
-
-    private void tryAddress(InetAddress address) {
-        try {
-            if (address.isReachable(10)) {
-                System.out.println(address.toString().substring(1) + " is on the network");
-                tryAllPorts(address.getHostAddress());
-            }
-        } catch (IOException ex) {
-            Logger.getLogger(MusicServer.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-
-    private void tryAllPorts(String hostAddress) {
-        for (int j = 1; j <= 3; j++) {
-            tryToConnectServer(hostAddress, 50000 + j);
-        }
-    }
-
-    private void tryToConnectServer(String hostAddress, int port) {
-        Socket socket;
-        try {
-            socket = new Socket(hostAddress, port);
-            socket.close();
-            this.netzwerkEinrichten(new ServerAddr(port, hostAddress, currentServerAddr.getName(), true));
-        } catch (ConnectException e) {
-            System.out.println(System.currentTimeMillis() + "Error while connecting. " + e.getMessage());
-        } catch (SocketTimeoutException e) {
-            System.out.println(System.currentTimeMillis() + "Connection: " + e.getMessage() + ".");
-        } catch (IOException e) {
-            Logger.getLogger(MusicServer.class.getName()).log(Level.SEVERE, null, e);
-        }
-    }
-
     public boolean switchToServer(String newServer) {
         ServerAddr serverAddr;
         System.out.println("switchToServer:" + newServer);
         serverAddr = serverPool.getServers().get(newServer);
-        System.out.println("switchToServer:" + serverAddr + ServerPool.getInstance(null));
+        System.out.println("switchToServer:" + serverAddr + ServerPool.getInstance());
 
         try {
             //wenn es geklappt hat, kann die Verbindung zum alten Server getrennt werden
