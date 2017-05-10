@@ -5,7 +5,6 @@ import de.beinlich.markus.musicsystem.model.net.*;
 import java.awt.event.*;
 import java.awt.image.*;
 import java.io.*;
-import java.util.LinkedList; 
 import java.util.List;
 import java.util.logging.*;
 import javax.imageio.*;
@@ -448,6 +447,7 @@ public class MusicClientApp extends javax.swing.JFrame implements VolumeObserver
 
         @Override
         public int getSize() {
+            if (rc == null || rc.getRecords() == null) return 0;
             return rc.getRecords().size();
         }
 
@@ -525,6 +525,7 @@ public class MusicClientApp extends javax.swing.JFrame implements VolumeObserver
 
         @Override
         public int getSize() {
+            if (record == null || record.getTracks() == null) return 0;
             return record.getTracks().size();
         }
 

@@ -1,10 +1,6 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package de.beinlich.markus.musicsystem.model.net;
 
+import com.sun.javafx.scene.control.skin.VirtualFlow;
 import de.beinlich.markus.musicsystem.model.TrackObserver;
 import de.beinlich.markus.musicsystem.model.TrackTimeObserver;
 import de.beinlich.markus.musicsystem.model.VolumeObserver;
@@ -17,11 +13,7 @@ import java.util.*;
 import java.util.logging.*;
 import javax.swing.SwingWorker;
 
-/**
- *
- * @author Markus Beinlich
- */
-public class MusicClient extends SwingWorker<Void, Void> implements MusicSystemInterfaceObserver, MusicSystemControllerInterface, MusicCollectionInterface {
+public class MusicClient extends SwingWorker<Void, Void> implements Observer, MusicSystemInterfaceObserver, MusicSystemControllerInterface, MusicCollectionInterface {
 
 //    private final MusicClientApp mca;
     private transient final ArrayList<MusicPlayerObserver> musicPlayerObservers = new ArrayList<>();
@@ -33,19 +25,9 @@ public class MusicClient extends SwingWorker<Void, Void> implements MusicSystemI
     private transient final ArrayList<MusicCollectionObserver> musicCollectionObservers = new ArrayList<>();
     private transient final ArrayList<ServerPoolObserver> serverPoolObservers = new ArrayList<>();
 
-    // Verbindungsaufbau mit dem Server
-    public Socket socket;
-    private Socket newSocket;
+    private final MusicClientNet musicClientNet;
+
     private ServerAddr currentServerAddr;
-    private Thread readerThread;
-    //
-    // IO-Klassen zur Kommunikation
-    private ObjectInputStream ois;
-    private ObjectOutputStream oos;
-
-    private static final int MAX_RECONNECTIONS = 100;
-    private int reconnections = 0;
-
     private MusicSystemDto musicSystem;
     private RecordDto record;
     private ServerPool serverPool;
@@ -61,151 +43,22 @@ public class MusicClient extends SwingWorker<Void, Void> implements MusicSystemI
     private int ipCounter = 1;
 
     public MusicClient(String clientName) {
-//        this.mca = mca;
+
         this.clientName = clientName;
-        serverPool = ServerPool.getInstance();
-        currentServerAddr = null;
+        this.musicClientNet = new MusicClientNet(clientName);
+        this.serverPool = ServerPool.getInstance();
+        this.currentServerAddr = null;
+        this.musicCollection = new MusicCollectionDto();
         System.out.println("Alle:" + serverPool.toString());
         System.out.println("currentServerAddr: " + currentServerAddr);
-        netzwerkEinrichten();
-        musicSystemObjectRead();
-        startReaderThread();
+        musicClientNet.addObserver(this);
+        musicClientNet.netzwerkEinrichten();
         System.out.println(System.currentTimeMillis() + "netzwerk eingerichtet: ");
-    }
-
-    private void netzwerkEinrichten() {
-        ServerFinder serverFinder;
-        serverPool = ServerPool.getInstance();
-        serverFinder = new ServerFinder(serverPool, null);
-        serverFinder.findServers();
-//        serverPool.findServers();
-        System.out.println("Alle:" + serverPool.toString());
-        while (socket == null) {
-            for (Map.Entry<String, ServerAddr> poolEntry : serverPool.getServers().entrySet()) {
-                ServerAddr serverAddr = poolEntry.getValue();
-                System.out.println("ServerAddr1: " + serverAddr);
-                try {
-                    NetProperties netProperties = new NetProperties();
-                    System.out.println(System.currentTimeMillis() + "new Socket with " + serverAddr.getServer_ip() + serverAddr.getPort());
-                    if (serverAddr.getServer_ip().equals("127.0.0.1")) {
-                        throw new ConnectException();
-                    }
-                    socket = new Socket(serverAddr.getServer_ip(), serverAddr.getPort());
-                    // Erzeugung der Kommunikations-Objekte
-                    ois = new ObjectInputStream(socket.getInputStream());
-                    System.out.println(System.currentTimeMillis() + "socket.connect 2");
-                    oos = new ObjectOutputStream(socket.getOutputStream());
-                    break;
-                } catch (ConnectException e) {
-                    System.out.println(System.currentTimeMillis() + "Error while connecting. " + e.getMessage());
-                } catch (SocketTimeoutException e) {
-                    System.out.println(System.currentTimeMillis() + "Connection: " + e.getMessage() + ".");
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-            System.out.println(System.currentTimeMillis() + "socket.connect3");
-            if (socket == null) {
-                serverFinder.findServers();
-                try {
-                    Thread.sleep(10_000);
-                } catch (InterruptedException ex) {
-                    Logger.getLogger(MusicClient.class.getName()).log(Level.SEVERE, null, ex);
-                }
-
-            }
-        }
-    }
-
-    private void startReaderThread() {
-        // Thread der sich um die eingehende Kommunikation kümmert
-        readerThread = new Thread(new MusicClient.EingehendReader(this));
-        // Thread als (Hintergrund-) Service
-        readerThread.setDaemon(true);
-        readerThread.start();
-        System.out.println(System.currentTimeMillis() + "CLIENT: Netzwerkverbindung steht jetzt");
-    }
-
-    private void musicSystemObjectRead() {
-        Protokoll nachricht;
-        ClientInit clientInit;
-        System.out.println("musicSystemObjectRead");
-        try {
-            // Als erstes write den Namen des eigenen Client übergeben!
-            oos.writeObject(new Protokoll(ProtokollType.CLIENT_NAME, clientName));
-            oos.flush();
-            try {
-                // reinkommende Nachrichten vom Server. Auf diese muss gewartet werden, 
-                // da ansonsten die initialisierung der GUI nicht funktioniert.
-                nachricht = (Protokoll) ois.readObject(); // blockiert!
-                clientInit = (ClientInit) nachricht.getValue();
-//                mca.setClientInit(clientInit);
-                musicSystem = clientInit.getMusicSystem();
-                musicCollection = clientInit.getMusicCollection();
-                ServerPool.getInstance().addServers(clientInit.getServerPool().getServers());
-                musicSystemState = musicSystem.activePlayer.musicSystemState;
-                record = musicSystem.activePlayer.record;
-                musicPlayer = musicSystem.activePlayer;
-                volume = musicSystem.activePlayer.volume;
-                oldVolume = volume;
-                playListComponent = musicSystem.activePlayer.currentTrack;
-                trackTime = musicSystem.activePlayer.currentTimeTrack;
-
-            } catch (ClassNotFoundException ex) {
-                System.out.println(ex);
-            }
-
-        } catch (IOException ex) {
-            System.out.println(System.currentTimeMillis() + "no connection - " + ex);
-        }
-    }
-
-    public void writeObject(Protokoll protokoll) {
-        try {
-            System.out.println(System.currentTimeMillis() + "writeObject:" + protokoll.getProtokollType() + ": " + protokoll.getValue());
-            // einen Befehl an der Server übertragen
-            oos.writeObject(protokoll);
-            oos.flush();
-        } catch (IOException ex) {
-            Logger.getLogger(Protokoll.class.getName()).log(Level.SEVERE, null, ex);
-        }
     }
 
     @Override
     protected Void doInBackground() throws Exception {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    public boolean switchToServer(String newServer) {
-        ServerAddr serverAddr;
-        System.out.println("switchToServer:" + newServer);
-        serverAddr = serverPool.getServers().get(newServer);
-        System.out.println("switchToServer:" + serverAddr + ServerPool.getInstance());
-
-        try {
-            //wenn es geklappt hat, kann die Verbindung zum alten Server getrennt werden
-            System.out.println("Old Socket:" + socket.hashCode());
-            newSocket = new Socket(serverAddr.getServer_ip(), serverAddr.getPort());
-            socket.close();
-            System.out.println("Old Socket:" + socket.hashCode());
-            System.out.println("LocalSocketAddress: " + newSocket.getLocalSocketAddress());
-            System.out.println("RemoteSocketAddress: " + newSocket.getRemoteSocketAddress());
-
-            // Erzeugung der Kommunikations-Objekte
-            ois = new ObjectInputStream(newSocket.getInputStream());
-            oos = new ObjectOutputStream(newSocket.getOutputStream());
-            socket = newSocket;
-            this.currentServerAddr = serverAddr;
-            musicSystemObjectRead();
-            startReaderThread();
-            System.out.println(System.currentTimeMillis() + "netzwerk eingerichtet: ");
-
-        } catch (IOException ex) {
-            Logger.getLogger(MusicClient.class
-                    .getName()).log(Level.SEVERE, null, ex);
-            return false;
-        }
-        return true;
     }
 
     @Override
@@ -222,7 +75,7 @@ public class MusicClient extends SwingWorker<Void, Void> implements MusicSystemI
     public void setRecord(RecordInterface record) {
         if (!this.record.equals(record)) {
             try {
-                writeObject(new Protokoll(RECORD_SELECTED, record));
+                musicClientNet.writeObject(new Protokoll(RECORD_SELECTED, record));
 
             } catch (InvalidObjectException ex) {
                 Logger.getLogger(MusicClient.class
@@ -238,10 +91,9 @@ public class MusicClient extends SwingWorker<Void, Void> implements MusicSystemI
 
     @Override
     public List<MusicPlayerInterface> getPlayers() {
-//        List<MusicPlayerInterface> players = new LinkedList<>();
-//        for (MusicPlayerDto player : musicSystem.players) {
-//            players.add((MusicPlayerInterface) player); 
-//        }
+        if (musicSystem == null) {
+            return new ArrayList<>();
+        }
         return musicSystem.players;
     }
 
@@ -252,11 +104,17 @@ public class MusicClient extends SwingWorker<Void, Void> implements MusicSystemI
 
     @Override
     public String getMusicSystemName() {
+        if (musicSystem == null) {
+            return null;
+        }
         return musicSystem.musicSystemName;
     }
 
     @Override
     public String getLocation() {
+        if (musicSystem == null) {
+            return null;
+        }
         return musicSystem.location;
     }
 
@@ -273,7 +131,7 @@ public class MusicClient extends SwingWorker<Void, Void> implements MusicSystemI
     @Override
     public void play() {
         try {
-            writeObject(new Protokoll(CLIENT_COMMAND_PLAY, musicSystemState));
+            musicClientNet.writeObject(new Protokoll(CLIENT_COMMAND_PLAY, musicSystemState));
 
         } catch (InvalidObjectException ex) {
             Logger.getLogger(MusicClient.class
@@ -284,7 +142,7 @@ public class MusicClient extends SwingWorker<Void, Void> implements MusicSystemI
     @Override
     public void pause() {
         try {
-            writeObject(new Protokoll(CLIENT_COMMAND_PAUSE, musicSystemState));
+            musicClientNet.writeObject(new Protokoll(CLIENT_COMMAND_PAUSE, musicSystemState));
 
         } catch (InvalidObjectException ex) {
             Logger.getLogger(MusicClient.class
@@ -296,7 +154,7 @@ public class MusicClient extends SwingWorker<Void, Void> implements MusicSystemI
     @Override
     public void next() {
         try {
-            writeObject(new Protokoll(CLIENT_COMMAND_NEXT, playListComponent));
+            musicClientNet.writeObject(new Protokoll(CLIENT_COMMAND_NEXT, playListComponent));
 
         } catch (InvalidObjectException ex) {
             Logger.getLogger(MusicClient.class
@@ -307,7 +165,7 @@ public class MusicClient extends SwingWorker<Void, Void> implements MusicSystemI
     @Override
     public void previous() {
         try {
-            writeObject(new Protokoll(CLIENT_COMMAND_PREVIOUS, playListComponent));
+            musicClientNet.writeObject(new Protokoll(CLIENT_COMMAND_PREVIOUS, playListComponent));
 
         } catch (InvalidObjectException ex) {
             Logger.getLogger(MusicClient.class
@@ -318,7 +176,7 @@ public class MusicClient extends SwingWorker<Void, Void> implements MusicSystemI
     @Override
     public void stop() {
         try {
-            writeObject(new Protokoll(CLIENT_COMMAND_STOP, musicSystemState));
+            musicClientNet.writeObject(new Protokoll(CLIENT_COMMAND_STOP, musicSystemState));
 
         } catch (InvalidObjectException ex) {
             Logger.getLogger(MusicClient.class
@@ -329,7 +187,7 @@ public class MusicClient extends SwingWorker<Void, Void> implements MusicSystemI
     @Override
     public void setVolume(double volume) {
         try {
-            writeObject(new Protokoll(VOLUME, new Double(volume)));
+            musicClientNet.writeObject(new Protokoll(VOLUME, new Double(volume)));
 
         } catch (InvalidObjectException ex) {
             Logger.getLogger(MusicClient.class
@@ -340,7 +198,7 @@ public class MusicClient extends SwingWorker<Void, Void> implements MusicSystemI
     @Override
     public void seek(int currentTimeTrack) {
         try {
-            writeObject(new Protokoll(TRACK_TIME, currentTimeTrack));
+            musicClientNet.writeObject(new Protokoll(TRACK_TIME, currentTimeTrack));
 
         } catch (InvalidObjectException ex) {
             Logger.getLogger(MusicClient.class
@@ -353,7 +211,7 @@ public class MusicClient extends SwingWorker<Void, Void> implements MusicSystemI
         try {
             //das Verändern des musicSystem/MusicSystem-Objektes muss vom Model/Server aus erfolgen. Sonst gibt es Rückkoppelungen
             //musicSystem.setCurrentTrack(listCurrentRecord.getSelectedValue());
-            writeObject(new Protokoll(TRACK_SELECTED, track));
+            musicClientNet.writeObject(new Protokoll(TRACK_SELECTED, track));
 
         } catch (InvalidObjectException ex) {
             Logger.getLogger(MusicClient.class
@@ -565,7 +423,7 @@ public class MusicClient extends SwingWorker<Void, Void> implements MusicSystemI
 
         if (!(musicPlayer.title.equals(selectedPlayer))) {
             try {
-                writeObject(new Protokoll(MUSIC_PLAYER_SELECTED, selectedPlayer));
+                musicClientNet.writeObject(new Protokoll(MUSIC_PLAYER_SELECTED, selectedPlayer));
 
             } catch (InvalidObjectException ex) {
                 Logger.getLogger(MusicClient.class
@@ -582,6 +440,9 @@ public class MusicClient extends SwingWorker<Void, Void> implements MusicSystemI
 
     @Override
     public List<RecordInterface> getRecords() {
+        if (musicCollection == null) {
+            return new ArrayList<>();
+        }
         return musicCollection.getRecords();
     }
 
@@ -611,101 +472,103 @@ public class MusicClient extends SwingWorker<Void, Void> implements MusicSystemI
 
     }
 
-    class EingehendReader implements Runnable {
+    @Override
+    public void update(Observable o, Object arg) {
 
-        private final MusicClient musicClient;
+        Protokoll nachricht;
+        MusicSystemState state;
+        double volume;
+        double trackTime;
+        ClientInit clientInit;
+        System.out.println("Observer: ");
+        if (o instanceof MusicClientNet) {
+            nachricht = (Protokoll) arg;
+            System.out.println(System.currentTimeMillis() + "CLIENT: gelesen: " + nachricht + " - " + o.getClass());
+            switch (nachricht.getProtokollType()) {
+                case CLIENT_INIT:
+                    clientInit = (ClientInit) nachricht.getValue();
 
-        private EingehendReader(MusicClient musicClient) {
-            this.musicClient = musicClient;
-        }
+                    musicSystem = clientInit.getMusicSystem();
+                    musicCollection = clientInit.getMusicCollection();
+                    ServerPool.getInstance().addServers(clientInit.getServerPool().getServers());
+                    musicSystemState = musicSystem.activePlayer.musicSystemState;
+                    record = musicSystem.activePlayer.record;
+                    musicPlayer = musicSystem.activePlayer;
+                    volume = musicSystem.activePlayer.volume;
+                    oldVolume = volume;
+                    playListComponent = musicSystem.activePlayer.currentTrack;
+                    trackTime = musicSystem.activePlayer.currentTimeTrack;
 
-        @Override
-        public void run() {
-            Protokoll nachricht;
-            MusicPlayerDto musicPlayer;
-            RecordDto record;
-            MusicSystemState state;
-            PlayListComponentDto playListComponent;
-            double volume;
-
-            try {
-                while (true) {
-
-                    // reinkommende Nachrichten vom Server
-                    Object o = ois.readObject();
-                    nachricht = (Protokoll) o; // blockiert!
-                    System.out.println(System.currentTimeMillis() + "CLIENT: gelesen: " + nachricht + " - " + o.getClass());
-                    switch (nachricht.getProtokollType()) {
-                        case MUSIC_COLLECTION_DTO:
-                            musicClient.musicCollection = (MusicCollectionDto) nachricht.getValue();
-                            notifyMusicCollectionObservers();
+                    break;
+                case MUSIC_COLLECTION_DTO:
+                    this.musicCollection = (MusicCollectionDto) nachricht.getValue();
+                    notifyMusicCollectionObservers();
 //                            mca.updateMusicCollection(musicClient.getMusicCollection());
-                            break;
-                        case MUSIC_PLAYER_DTO:
-                            musicPlayer = (MusicPlayerDto) nachricht.getValue();
-                            if (!musicPlayer.equals(musicClient.musicPlayer)) {
-                                musicClient.musicSystem.activePlayer = musicPlayer;
-                                musicClient.musicPlayer = musicPlayer;
-                                notifyMusicPlayerObservers();
+                    break;
+                case MUSIC_PLAYER_DTO:
+                    musicPlayer = (MusicPlayerDto) nachricht.getValue();
+                    if (!musicPlayer.equals(this.musicPlayer)) {
+                        this.musicSystem.activePlayer = musicPlayer;
+                        this.musicPlayer = musicPlayer;
+                        notifyMusicPlayerObservers();
 //                                mca.updateMusicPlayer(musicPlayer);
-                            }
-                            break;
-                        case RECORD_DTO:
-                            //Achtung: Rückkopplung vermeiden
-                            record = (RecordDto) nachricht.getValue();
-                            if (!(record.equals(musicClient.record))) {
-                                System.out.println(System.currentTimeMillis() + "RECORD");
-                                musicClient.record = record;
-                                notifyRecordObservers();
-//                                mca.updateRecord(record);
-                            }
-                            break;
-                        case STATE:
-                            //Achtung: Rückkopplung vermeiden
-                            state = (MusicSystemState) nachricht.getValue();
-                            System.out.println(System.currentTimeMillis() + "State");
-                            musicSystemState = state;
-                            break;
-                        case PLAY_LIST_COMPONENT_DTO:
-                            //Achtung: Rückkopplung vermeiden
-                            playListComponent = (PlayListComponentDto) nachricht.getValue();
-                            if (!(playListComponent.equals(musicClient.playListComponent))) {
-                                System.out.println(System.currentTimeMillis() + "TRACK");
-                                musicClient.playListComponent = playListComponent;
-                                musicClient.trackTime = 0;
-                                notifyTrackObservers();
-//                                mca.updatePlayListComponent(playListComponent);
-                            }
-                            break;
-                        case TRACK_TIME:
-                            trackTime = (int) nachricht.getValue();
-                            notifyTrackTimeObservers();
-//                            mca.updateTrackTime(trackTime);
-                            break;
-                        case VOLUME:
-                            //Achtung: Rückkopplung vermeiden
-                            volume = (double) nachricht.getValue();
-                            if (volume != musicClient.getVolume() && volume != musicClient.getOldVolume()) {
-                                musicClient.setOldVolume(musicClient.getVolume());
-                                musicClient.volume = volume;
-                                notifyVolumeObservers();
-                            }
-                            break;
-                        case SERVER_POOL:
-                            musicClient.serverPool.addServers((Map<String, ServerAddr>) nachricht.getValue());
-                            notifyServerPoolObservers();
-//                            mca.updateServerPool(musicClient.serverPool);
-                            break;
-                        default:
-                            System.out.println(System.currentTimeMillis() + "Unbekannte Nachricht:" + nachricht.getProtokollType());
                     }
-                }
-
-            } catch (IOException | ClassNotFoundException ex) {
-                System.out.println(System.currentTimeMillis() + "CLIENT: Verbindung zum Server beendet - " + ex);
-                ex.printStackTrace();
+                    break;
+                case RECORD_DTO:
+                    //Achtung: Rückkopplung vermeiden
+                    record = (RecordDto) nachricht.getValue();
+                    if (!(record.equals(this.record))) {
+                        System.out.println(System.currentTimeMillis() + "RECORD");
+                        this.record = record;
+                        notifyRecordObservers();
+//                                mca.updateRecord(record);
+                    }
+                    break;
+                case STATE:
+                    //Achtung: Rückkopplung vermeiden
+                    state = (MusicSystemState) nachricht.getValue();
+                    System.out.println(System.currentTimeMillis() + "State");
+                    musicSystemState = state;
+                    break;
+                case PLAY_LIST_COMPONENT_DTO:
+                    //Achtung: Rückkopplung vermeiden
+                    playListComponent = (PlayListComponentDto) nachricht.getValue();
+                    if (!(playListComponent.equals(this.playListComponent))) {
+                        System.out.println(System.currentTimeMillis() + "TRACK");
+                        this.playListComponent = playListComponent;
+                        this.trackTime = 0;
+                        notifyTrackObservers();
+//                                mca.updatePlayListComponent(playListComponent);
+                    }
+                    break;
+                case TRACK_TIME:
+                    trackTime = (int) nachricht.getValue();
+                    notifyTrackTimeObservers();
+//                            mca.updateTrackTime(trackTime);
+                    break;
+                case VOLUME:
+                    //Achtung: Rückkopplung vermeiden
+                    volume = (double) nachricht.getValue();
+                    if (volume != this.getVolume() && volume != this.getOldVolume()) {
+                        this.setOldVolume(this.getVolume());
+                        this.volume = volume;
+                        notifyVolumeObservers();
+                    }
+                    break;
+                case SERVER_POOL:
+                    this.serverPool.addServers((Map<String, ServerAddr>) nachricht.getValue());
+                    notifyServerPoolObservers();
+//                            mca.updateServerPool(musicClient.serverPool);
+                    break;
+                default:
+                    System.out.println(System.currentTimeMillis() + "Unbekannte Nachricht:" + nachricht.getProtokollType());
             }
         }
+
+    }
+
+    public boolean switchToServer(String newServer) {
+        return musicClientNet.switchToServer(newServer);
     }
 
     /**
