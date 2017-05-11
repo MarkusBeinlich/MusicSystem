@@ -2,13 +2,16 @@ package de.beinlich.markus.musicsystem.gui;
 
 import de.beinlich.markus.musicsystem.model.*;
 import de.beinlich.markus.musicsystem.model.net.*;
+import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.*;
 import java.io.*;
+import java.util.*;
 import java.util.List;
 import java.util.logging.*;
 import javax.imageio.*;
 import javax.swing.*;
+import static sun.management.snmp.jvminstr.JvmThreadInstanceEntryImpl.ThreadStateMap.Byte0.*;
 
 /**
  *
@@ -16,10 +19,10 @@ import javax.swing.*;
  */
 public class MusicClientApp extends javax.swing.JFrame implements VolumeObserver, TrackObserver, TrackTimeObserver, RecordObserver, MusicPlayerObserver, MusicCollectionObserver, ServerPoolObserver {
 
-    private final MusicSystemInterfaceObserver musicSystem;
-    private final MusicCollectionInterface musicCollection;
-    private final MusicSystemControllerInterface musicSystemController;
-    private final MusicClient musicClient;
+    private MusicSystemInterfaceObserver musicSystem;
+    private MusicCollectionInterface musicCollection;
+    private MusicSystemControllerInterface musicSystemController;
+    private MusicClient musicClient;
     private final TrackListModel tlm;
     private final RecordComboBoxModel rcm;
     private final PlayerComboBoxModel scm;
@@ -31,32 +34,68 @@ public class MusicClientApp extends javax.swing.JFrame implements VolumeObserver
      */
     public MusicClientApp() {
 
-        musicClient = new MusicClient(clientName);
-
-        System.out.println(System.currentTimeMillis() + "**************MusicClient ist aktiv");
-        musicSystem = musicClient;
-        musicSystemController = musicClient;
-        musicCollection = musicClient;
-
-        musicSystem.registerObserver((VolumeObserver) this);
-        musicSystem.registerObserver((TrackTimeObserver) this);
-        musicSystem.registerObserver((TrackObserver) this);
-//        musicSystem.registerObserver((StateObserver) this);
-        musicSystem.registerObserver((RecordObserver) this);
-        musicSystem.registerObserver((MusicPlayerObserver) this);
-        musicSystem.registerObserver((ServerPoolObserver) this);
-        musicCollection.registerObserver((MusicCollectionObserver) this);
-
-        System.out.println(System.currentTimeMillis() + "musicSystem ist übergeben:" + musicSystem);
-
-        tlm = new TrackListModel(musicSystem.getRecord());
-        rcm = new RecordComboBoxModel(musicClient.getMusicCollection());
-        scm = new PlayerComboBoxModel((musicSystem.getPlayers()));
-        sercm = new ServerComboBoxModel(musicClient.getServerPool().getActiveServers());
+        tlm = new TrackListModel(new RecordDto());
+        rcm = new RecordComboBoxModel(new MusicCollectionDto());
+        scm = new PlayerComboBoxModel(new ArrayList<>());
+        sercm = new ServerComboBoxModel(new ArrayList<>());
 
         initComponents();
 
-        doClientInit();
+        EventQueue.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                StartMusicClient smc = new StartMusicClient(MusicClientApp.this);
+                new Thread(smc).start();
+            }
+        });
+    }
+
+    public static void main(String args[]) {
+        //Namen des Client setzen (wird für Eindeutigkeit benötigt
+        if (args.length >= 1) {
+            clientName = args[0];
+        } else {
+            clientName = "Client";
+        }
+
+        java.awt.EventQueue.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                new MusicClientApp().setVisible(true);
+            }
+        });
+    }
+
+    private class StartMusicClient implements Runnable {
+
+        MusicClientApp musicClientApp;
+
+        public StartMusicClient(MusicClientApp musicClientApp) {
+            this.musicClientApp = musicClientApp;
+        }
+
+        @Override
+        public void run() {
+            musicClient = new MusicClient(clientName);
+
+            System.out.println(System.currentTimeMillis() + "**************MusicClient ist aktiv");
+            musicSystem = musicClient;
+            musicSystemController = musicClient;
+            musicCollection = musicClient;
+
+            musicSystem.registerObserver((VolumeObserver) musicClientApp);
+            musicSystem.registerObserver((TrackTimeObserver) musicClientApp);
+            musicSystem.registerObserver((TrackObserver) musicClientApp);
+            musicSystem.registerObserver((RecordObserver) musicClientApp);
+            musicSystem.registerObserver((MusicPlayerObserver) musicClientApp);
+            musicSystem.registerObserver((ServerPoolObserver) musicClientApp);
+            musicCollection.registerObserver((MusicCollectionObserver) musicClientApp);
+
+            System.out.println(System.currentTimeMillis() + "musicSystem ist übergeben:" + musicSystem);
+
+            doClientInit();
+        }
+
     }
 
     @SuppressWarnings("unchecked")
@@ -88,7 +127,6 @@ public class MusicClientApp extends javax.swing.JFrame implements VolumeObserver
         comboBoxServer = new javax.swing.JComboBox<>();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setTitle(musicSystem.getMusicSystemName() + " - " + musicSystem.getLocation() + " - " + clientName);
 
         buttonPlay.setText("Play");
         buttonPlay.addActionListener(new java.awt.event.ActionListener() {
@@ -339,7 +377,9 @@ public class MusicClientApp extends javax.swing.JFrame implements VolumeObserver
     }//GEN-LAST:event_buttonStopActionPerformed
 
     private void sliderVolumeStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_sliderVolumeStateChanged
-        musicSystemController.setVolume(sliderVolume.getValue());
+        if (sliderVolume.getValue() != musicSystem.getVolume()) {
+            musicSystemController.setVolume(sliderVolume.getValue());
+        }
     }//GEN-LAST:event_sliderVolumeStateChanged
 
     private void listCurrentRecordMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_listCurrentRecordMouseClicked
@@ -387,24 +427,6 @@ public class MusicClientApp extends javax.swing.JFrame implements VolumeObserver
         }
     }//GEN-LAST:event_sliderProgressStateChanged
 
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String args[]) {
-        //Namen des Client setzen (wird für Eindeutigkeit benötigt
-        if (args.length >= 1) {
-            clientName = args[0];
-        } else {
-            clientName = "Client";
-        }
-
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                new MusicClientApp().setVisible(true);
-            }
-        });
-    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton buttonNext;
@@ -438,7 +460,9 @@ public class MusicClientApp extends javax.swing.JFrame implements VolumeObserver
 
         public RecordComboBoxModel(MusicCollectionInterface rc) {
             this.rc = rc;
-            this.setSelectedItem(musicSystem.getRecord());
+            if (musicSystem != null) {
+                this.setSelectedItem(musicSystem.getRecord());
+            }
         }
 
         public void replaceRecordCollection(MusicCollectionInterface rc) {
@@ -447,7 +471,9 @@ public class MusicClientApp extends javax.swing.JFrame implements VolumeObserver
 
         @Override
         public int getSize() {
-            if (rc == null || rc.getRecords() == null) return 0;
+            if (rc == null || rc.getRecords() == null) {
+                return 0;
+            }
             return rc.getRecords().size();
         }
 
@@ -464,7 +490,9 @@ public class MusicClientApp extends javax.swing.JFrame implements VolumeObserver
 
         public PlayerComboBoxModel(List<MusicPlayerInterface> players) {
             this.players = players;
-            this.setSelectedItem(musicSystem.getActivePlayer());
+            if (musicSystem != null) {
+                this.setSelectedItem(musicSystem.getActivePlayer());
+            }
         }
 
         public void replacePlayers(List<MusicPlayerInterface> players) {
@@ -489,7 +517,9 @@ public class MusicClientApp extends javax.swing.JFrame implements VolumeObserver
 
         public ServerComboBoxModel(List<String> servers) {
             this.servers = servers;
-            this.setSelectedItem(servers.get(0));
+            if (servers != null && !servers.isEmpty()) {
+                this.setSelectedItem(servers.get(0));
+            }
         }
 
         public void replaceServers(List<String> servers) {
@@ -525,7 +555,9 @@ public class MusicClientApp extends javax.swing.JFrame implements VolumeObserver
 
         @Override
         public int getSize() {
-            if (record == null || record.getTracks() == null) return 0;
+            if (record == null || record.getTracks() == null) {
+                return 0;
+            }
             return record.getTracks().size();
         }
 
@@ -552,7 +584,7 @@ public class MusicClientApp extends javax.swing.JFrame implements VolumeObserver
     @Override
     public void updateMusicPlayer() {
         System.out.println(System.currentTimeMillis() + "UpdateMusicPlayer: " + musicSystem.getActivePlayer());
-
+        scm.replacePlayers(musicSystem.getPlayers());
         //Werte der aktiven MusicPlayer anzeigen
         buttonPlay.setEnabled(musicSystem.hasPlay());
         buttonStop.setEnabled(musicSystem.hasStop());
@@ -573,7 +605,10 @@ public class MusicClientApp extends javax.swing.JFrame implements VolumeObserver
         System.out.println(System.currentTimeMillis() + "UpdateMusicPlayerEnd: " + comboBoxPlayer.getSelectedItem());
     }
 
+    @Override
     public void updateRecord() {
+
+        rcm.replaceRecordCollection(musicClient.getMusicCollection());
 
         if (listCurrentRecord != null) {
             listCurrentRecord.clearSelection(); //erzeugt eine Nullpointerexception
@@ -597,6 +632,7 @@ public class MusicClientApp extends javax.swing.JFrame implements VolumeObserver
      *
      */
     public void updateTrack() {
+        tlm.replaceRecord(musicSystem.getRecord());
         System.out.println("updatePlayListComponent:" + musicSystem.getCurrentTrack());
         if (musicSystem.getCurrentTrack() != null) {
             //richtigen Track selektieren - Objektgleichheit ist leider nicht gegeben
@@ -624,14 +660,15 @@ public class MusicClientApp extends javax.swing.JFrame implements VolumeObserver
         updateVolume();
         scm.replacePlayers(musicSystem.getPlayers());
         setTitle(musicSystem.getMusicSystemName() + " - " + musicSystem.getLocation() + " - " + clientName);
+
     }
 
-    /**
-     *
-     */
+    @Override
     public void updateTrackTime() {
         labelElapsedTime.setText("- " + musicSystem.getCurrentTimeTrack());
-        labelRemainingTime.setText(" " + (musicSystem.getCurrentTrack().getPlayingTime() - musicSystem.getCurrentTimeTrack()));
+        if (musicSystem != null && musicSystem.getCurrentTrack() != null) {
+            labelRemainingTime.setText(" " + (musicSystem.getCurrentTrack().getPlayingTime() - musicSystem.getCurrentTimeTrack()));
+        }
         sliderProgress.setValue((int) musicSystem.getCurrentTimeTrack());
     }
 
@@ -641,6 +678,9 @@ public class MusicClientApp extends javax.swing.JFrame implements VolumeObserver
     }
 
     private boolean hasCover() {
+        if (musicSystem == null || musicSystem.getRecord() == null) {
+            return false;
+        }
         return (musicSystem.getRecord().getCover() != null);
     }
 

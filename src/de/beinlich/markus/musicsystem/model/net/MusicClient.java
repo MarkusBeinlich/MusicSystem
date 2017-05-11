@@ -1,6 +1,5 @@
 package de.beinlich.markus.musicsystem.model.net;
 
-import com.sun.javafx.scene.control.skin.VirtualFlow;
 import de.beinlich.markus.musicsystem.model.TrackObserver;
 import de.beinlich.markus.musicsystem.model.TrackTimeObserver;
 import de.beinlich.markus.musicsystem.model.VolumeObserver;
@@ -8,12 +7,10 @@ import static de.beinlich.markus.musicsystem.model.net.ProtokollType.*;
 //import de.beinlich.markus.musicsystem.gui.*;
 import de.beinlich.markus.musicsystem.model.*;
 import java.io.*;
-import java.net.*;
 import java.util.*;
 import java.util.logging.*;
-import javax.swing.SwingWorker;
 
-public class MusicClient extends SwingWorker<Void, Void> implements Observer, MusicSystemInterfaceObserver, MusicSystemControllerInterface, MusicCollectionInterface {
+public class MusicClient implements Observer, MusicSystemInterfaceObserver, MusicSystemControllerInterface, MusicCollectionInterface {
 
 //    private final MusicClientApp mca;
     private transient final ArrayList<MusicPlayerObserver> musicPlayerObservers = new ArrayList<>();
@@ -30,7 +27,7 @@ public class MusicClient extends SwingWorker<Void, Void> implements Observer, Mu
     private ServerAddr currentServerAddr;
     private MusicSystemDto musicSystem;
     private RecordDto record;
-    private ServerPool serverPool;
+    private final ServerPool serverPool;
     private MusicPlayerDto musicPlayer;
     private MusicCollectionDto musicCollection;
     private PlayListComponentDto playListComponent;
@@ -39,8 +36,7 @@ public class MusicClient extends SwingWorker<Void, Void> implements Observer, Mu
     private double oldVolume;
     private int trackTime;
     private ClientInit clientInit;
-    private static String clientName;
-    private int ipCounter = 1;
+    private final String clientName;
 
     public MusicClient(String clientName) {
 
@@ -54,11 +50,6 @@ public class MusicClient extends SwingWorker<Void, Void> implements Observer, Mu
         musicClientNet.addObserver(this);
         musicClientNet.netzwerkEinrichten();
         System.out.println(System.currentTimeMillis() + "netzwerk eingerichtet: ");
-    }
-
-    @Override
-    protected Void doInBackground() throws Exception {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
@@ -231,36 +222,57 @@ public class MusicClient extends SwingWorker<Void, Void> implements Observer, Mu
 
     @Override
     public boolean hasPause() {
+        if (musicSystem == null || musicSystem.activePlayer == null) {
+            return false;
+        }
         return musicSystem.activePlayer.hasPause;
     }
 
     @Override
     public boolean hasPlay() {
+        if (musicSystem == null || musicSystem.activePlayer == null) {
+            return false;
+        }
         return musicSystem.activePlayer.hasPlay;
     }
 
     @Override
     public boolean hasNext() {
+        if (musicSystem == null || musicSystem.activePlayer == null) {
+            return false;
+        }
         return musicSystem.activePlayer.hasNext;
     }
 
     @Override
     public boolean hasPrevious() {
+        if (musicSystem == null || musicSystem.activePlayer == null) {
+            return false;
+        }
         return musicSystem.activePlayer.hasPrevious;
     }
 
     @Override
     public boolean hasStop() {
+        if (musicSystem == null || musicSystem.activePlayer == null) {
+            return false;
+        }
         return musicSystem.activePlayer.hasStop;
     }
 
     @Override
     public boolean hasTracks() {
+        if (musicSystem == null || musicSystem.activePlayer == null) {
+            return false;
+        }
         return musicSystem.activePlayer.hasTracks;
     }
 
     @Override
     public boolean hasCurrentTime() {
+        if (musicSystem == null || musicSystem.activePlayer == null) {
+            return false;
+        }
         return musicSystem.activePlayer.hasCurrentTime;
     }
 
@@ -477,9 +489,6 @@ public class MusicClient extends SwingWorker<Void, Void> implements Observer, Mu
 
         Protokoll nachricht;
         MusicSystemState state;
-        double volume;
-        double trackTime;
-        ClientInit clientInit;
         System.out.println("Observer: ");
         if (o instanceof MusicClientNet) {
             nachricht = (Protokoll) arg;
@@ -489,6 +498,7 @@ public class MusicClient extends SwingWorker<Void, Void> implements Observer, Mu
                     clientInit = (ClientInit) nachricht.getValue();
 
                     musicSystem = clientInit.getMusicSystem();
+                    currentServerAddr = musicSystem.serverAddr;
                     musicCollection = clientInit.getMusicCollection();
                     ServerPool.getInstance().addServers(clientInit.getServerPool().getServers());
                     musicSystemState = musicSystem.activePlayer.musicSystemState;
@@ -499,6 +509,14 @@ public class MusicClient extends SwingWorker<Void, Void> implements Observer, Mu
                     playListComponent = musicSystem.activePlayer.currentTrack;
                     trackTime = musicSystem.activePlayer.currentTimeTrack;
 
+                    notifyRecordObservers();
+                    notifyServerPoolObservers();
+                    notifyMusicCollectionObservers();
+                    notifyMusicPlayerObservers();
+                    notifyTrackObservers();
+                    notifyTrackTimeObservers();
+                    notifyVolumeObservers();
+
                     break;
                 case MUSIC_COLLECTION_DTO:
                     this.musicCollection = (MusicCollectionDto) nachricht.getValue();
@@ -506,22 +524,19 @@ public class MusicClient extends SwingWorker<Void, Void> implements Observer, Mu
 //                            mca.updateMusicCollection(musicClient.getMusicCollection());
                     break;
                 case MUSIC_PLAYER_DTO:
-                    musicPlayer = (MusicPlayerDto) nachricht.getValue();
-                    if (!musicPlayer.equals(this.musicPlayer)) {
+                    if (!((MusicPlayerDto) nachricht.getValue()).equals(this.musicPlayer)) {
+                        musicPlayer = (MusicPlayerDto) nachricht.getValue();
                         this.musicSystem.activePlayer = musicPlayer;
-                        this.musicPlayer = musicPlayer;
                         notifyMusicPlayerObservers();
 //                                mca.updateMusicPlayer(musicPlayer);
                     }
                     break;
                 case RECORD_DTO:
                     //Achtung: Rückkopplung vermeiden
-                    record = (RecordDto) nachricht.getValue();
-                    if (!(record.equals(this.record))) {
+                    if (!(((RecordDto) nachricht.getValue()).equals(this.record))) {
+                        record = (RecordDto) nachricht.getValue();
                         System.out.println(System.currentTimeMillis() + "RECORD");
-                        this.record = record;
                         notifyRecordObservers();
-//                                mca.updateRecord(record);
                     }
                     break;
                 case STATE:
@@ -532,26 +547,24 @@ public class MusicClient extends SwingWorker<Void, Void> implements Observer, Mu
                     break;
                 case PLAY_LIST_COMPONENT_DTO:
                     //Achtung: Rückkopplung vermeiden
-                    playListComponent = (PlayListComponentDto) nachricht.getValue();
-                    if (!(playListComponent.equals(this.playListComponent))) {
+                    if (!(((PlayListComponentDto) nachricht.getValue()).equals(this.playListComponent))) {
+                        playListComponent = (PlayListComponentDto) nachricht.getValue();
                         System.out.println(System.currentTimeMillis() + "TRACK");
-                        this.playListComponent = playListComponent;
                         this.trackTime = 0;
                         notifyTrackObservers();
-//                                mca.updatePlayListComponent(playListComponent);
                     }
                     break;
                 case TRACK_TIME:
                     trackTime = (int) nachricht.getValue();
                     notifyTrackTimeObservers();
-//                            mca.updateTrackTime(trackTime);
                     break;
                 case VOLUME:
                     //Achtung: Rückkopplung vermeiden
-                    volume = (double) nachricht.getValue();
-                    if (volume != this.getVolume() && volume != this.getOldVolume()) {
+                    System.out.println("VOLUME: gelesen: " + (double) nachricht.getValue() + " current: " + this.getVolume() + " old: " + this.getOldVolume());
+                    if (((double) nachricht.getValue()) != this.getVolume()
+                            && ((double) nachricht.getValue()) != this.getOldVolume()) {
                         this.setOldVolume(this.getVolume());
-                        this.volume = volume;
+                        volume = (double) nachricht.getValue();
                         notifyVolumeObservers();
                     }
                     break;
@@ -599,24 +612,15 @@ public class MusicClient extends SwingWorker<Void, Void> implements Observer, Mu
         this.oldVolume = oldVolume;
     }
 
-    /**
-     * @return the musicCollection
-     */
     public MusicCollectionDto getMusicCollection() {
         return musicCollection;
     }
 
-    /**
-     * @return the serverPool
-     */
     public ServerPool getServerPool() {
         return serverPool;
     }
 
-    /**
-     * @return the clientName
-     */
-    public static String getClientName() {
+    public String getClientName() {
         return clientName;
     }
 
