@@ -377,8 +377,10 @@ public class MusicClientApp extends javax.swing.JFrame implements VolumeObserver
     }//GEN-LAST:event_buttonStopActionPerformed
 
     private void sliderVolumeStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_sliderVolumeStateChanged
-        if (sliderVolume.getValue() != musicSystem.getVolume()) {
-            musicSystemController.setVolume(sliderVolume.getValue());
+        if (!((JSlider) evt.getSource()).getValueIsAdjusting()) {
+            if (sliderVolume.getValue() != musicSystem.getVolume()) {
+                musicSystemController.setVolume(sliderVolume.getValue());
+            }
         }
     }//GEN-LAST:event_sliderVolumeStateChanged
 
@@ -389,8 +391,8 @@ public class MusicClientApp extends javax.swing.JFrame implements VolumeObserver
 
     private void comboBoxRecordsItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_comboBoxRecordsItemStateChanged
         //das Verändern des musicSystem/MusicSystem-Objektes muss vom Model/Server aus erfolgen. Sonst gibt es Rückkoppelungen
-        if (evt.getStateChange() == ItemEvent.SELECTED) {
-            System.out.println(System.currentTimeMillis() + "comboBoxRecordsItemStateChanged: " + listCurrentRecord.getSelectedValue());
+        if (evt.getStateChange() == ItemEvent.SELECTED && !comboBoxRecords.getSelectedItem().equals(musicSystem.getRecord())) {
+            System.out.println(System.currentTimeMillis() + "comboBoxRecordsItemStateChanged: " + comboBoxRecords.getSelectedItem() + " - " + musicSystem.getRecord());
             musicSystemController.setRecord((RecordInterface) comboBoxRecords.getSelectedItem());
         }
 
@@ -421,9 +423,11 @@ public class MusicClientApp extends javax.swing.JFrame implements VolumeObserver
     }//GEN-LAST:event_comboBoxServerItemStateChanged
 
     private void sliderProgressStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_sliderProgressStateChanged
-        if (sliderProgress.getValue() != musicSystem.getCurrentTimeTrack()) {
-            System.out.println("sliderProgressStateChanged: " + sliderProgress.getValue() + " - " + musicSystem.getCurrentTimeTrack());
-            musicSystemController.seek(sliderProgress.getValue());
+        if (sliderProgress.isFocusOwner() && !((JSlider) evt.getSource()).getValueIsAdjusting()) {
+            if (sliderProgress.getValue() != musicSystem.getCurrentTimeTrack()) {
+                System.out.println("sliderProgressStateChanged: " + sliderProgress.getValue() + " - " + musicSystem.getCurrentTimeTrack());
+                musicSystemController.seek(sliderProgress.getValue());
+            }
         }
     }//GEN-LAST:event_sliderProgressStateChanged
 
@@ -501,6 +505,9 @@ public class MusicClientApp extends javax.swing.JFrame implements VolumeObserver
 
         @Override
         public int getSize() {
+            if (players == null) {
+                return 0;
+            }
             return players.size();
         }
 
@@ -524,6 +531,7 @@ public class MusicClientApp extends javax.swing.JFrame implements VolumeObserver
 
         public void replaceServers(List<String> servers) {
             this.servers = servers;
+            this.fireContentsChanged(this, 0, getSize() - 1);
         }
 
         @Override
@@ -571,9 +579,21 @@ public class MusicClientApp extends javax.swing.JFrame implements VolumeObserver
 
     @Override
     public void updateServerPool() {
-        System.out.println(System.currentTimeMillis() + "updateServerPool ");
+        setTitle(musicSystem.getMusicSystemName() + " - " + musicSystem.getLocation() + " - " + clientName);
+        System.out.println(System.currentTimeMillis() + "updateServerPool: " + musicClient.getServerPool());
         sercm.replaceServers(musicClient.getServerPool().getActiveServers());
-//        comboBoxServer.setSelectedItem(musicSystem.getServerAddr().getName());
+        if (musicClient.getServerPool().getServers().isEmpty()) {
+            EventQueue.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                    StartMusicClient smc = new StartMusicClient(MusicClientApp.this);
+                    new Thread(smc).start();
+                }
+            });
+        }
+        if (musicSystem != null && musicSystem.getServerAddr() != null) {
+            comboBoxServer.setSelectedItem(musicSystem.getServerAddr().getName());
+        }
     }
 
     @Override

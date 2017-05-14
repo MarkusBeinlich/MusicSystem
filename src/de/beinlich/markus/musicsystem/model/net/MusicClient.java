@@ -217,7 +217,10 @@ public class MusicClient implements Observer, MusicSystemInterfaceObserver, Musi
 
     @Override
     public ServerAddr getServerAddr() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        if (musicSystem == null) {
+            return null;
+        }
+        return musicSystem.serverAddr;
     }
 
     @Override
@@ -518,6 +521,27 @@ public class MusicClient implements Observer, MusicSystemInterfaceObserver, Musi
                     notifyVolumeObservers();
 
                     break;
+                case SERVER_DISCONNECT:
+                    musicSystem = new MusicSystemDto();
+                    currentServerAddr = null;
+                    musicCollection = new MusicCollectionDto();
+                    ServerPool.getInstance().clear();
+                    musicSystemState = null;
+                    record = new RecordDto();
+                    musicPlayer = new MusicPlayerDto();
+                    volume = 0.0;
+                    oldVolume = 0.0;
+                    playListComponent = new PlayListComponentDto();
+                    trackTime = 0;
+
+                    notifyRecordObservers();
+                    notifyMusicCollectionObservers();
+                    notifyMusicPlayerObservers();
+                    notifyTrackObservers();
+                    notifyTrackTimeObservers();
+                    notifyVolumeObservers();
+                    notifyServerPoolObservers();
+                    break;
                 case MUSIC_COLLECTION_DTO:
                     this.musicCollection = (MusicCollectionDto) nachricht.getValue();
                     notifyMusicCollectionObservers();
@@ -569,7 +593,7 @@ public class MusicClient implements Observer, MusicSystemInterfaceObserver, Musi
                     }
                     break;
                 case SERVER_POOL:
-                    this.serverPool.addServers((Map<String, ServerAddr>) nachricht.getValue());
+                    this.serverPool.setServers((Map<String, ServerAddr>) nachricht.getValue());
                     notifyServerPoolObservers();
 //                            mca.updateServerPool(musicClient.serverPool);
                     break;

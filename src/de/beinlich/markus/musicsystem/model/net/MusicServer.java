@@ -11,7 +11,6 @@ import javax.swing.SwingWorker;
 public class MusicServer extends SwingWorker<Void, Void> implements VolumeObserver, TrackTimeObserver, TrackObserver, StateObserver, RecordObserver, MusicPlayerObserver, MusicCollectionObserver {
 
     private final List<ObjectOutputStream> clients;
-    private final List<ObjectOutputStream> servers;
 
     private final MusicSystemInterfaceObserver musicSystem; //Model
     private final MusicSystemControllerInterface musicSystemController;
@@ -23,7 +22,6 @@ public class MusicServer extends SwingWorker<Void, Void> implements VolumeObserv
     public MusicServer(MusicSystemControllerInterface musicSystemController, MusicSystemInterfaceObserver musicSystem) {
 //        this.msa = msa;
         clients = new ArrayList<>();
-        servers = new ArrayList<>();
         this.musicSystem = musicSystem;
         this.musicSystemController = musicSystemController;
         //Den Namen des MusicServer auf den gleichen wert wie beim MusicSystem setzen.
@@ -74,7 +72,7 @@ public class MusicServer extends SwingWorker<Void, Void> implements VolumeObserv
                 // waiting for a client to connect
                 socket = serverSocket.accept();  // blockiert!
 
-                new Thread(new ClientHandler(socket, this, false)).start();
+                new Thread(new ClientHandler(socket, this)).start();
 
             }
         } catch (IOException | NumberFormatException ex) {
@@ -96,19 +94,6 @@ public class MusicServer extends SwingWorker<Void, Void> implements VolumeObserv
                 System.out.println(System.currentTimeMillis() + "server: geschrieben: " + nachricht + "-" + System.currentTimeMillis());
             } catch (IOException ex) {
                 System.out.println(ex);
-            }
-        });
-    }
-
-    private synchronized void talkToAllServer(Protokoll nachricht) {
-        servers.forEach((oos) -> {
-            try {
-                oos.writeObject(nachricht);
-                oos.flush();
-                System.out.println(System.currentTimeMillis() + "server: geschrieben: " + nachricht + "-" + System.currentTimeMillis());
-            } catch (IOException ex) {
-                System.out.println(ex);
-
             }
         });
     }
@@ -135,7 +120,7 @@ public class MusicServer extends SwingWorker<Void, Void> implements VolumeObserv
         private MusicSystemInterface musicSystem;
         private MusicSystemControllerInterface musicSystemController;
 
-        public ClientHandler(Socket socket, MusicServer musicServer, boolean isServer) {
+        public ClientHandler(Socket socket, MusicServer musicServer) {
             this.socket = socket;
             this.musicServer = musicServer;
             this.musicSystem = musicServer.musicSystem;
@@ -143,13 +128,6 @@ public class MusicServer extends SwingWorker<Void, Void> implements VolumeObserv
             try {
                 oos = new ObjectOutputStream(socket.getOutputStream());
                 ois = new ObjectInputStream(socket.getInputStream());
-//                clients.add(oos);
-                if (isServer) {
-                    servers.add(oos);
-                    oos.writeObject(new Protokoll(SERVER_ADDR,
-                            musicServer.musicSystem.getServerAddr()));
-                    oos.flush();
-                }
             } catch (IOException ex) {
                 Logger.getLogger(MusicServer.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -160,7 +138,7 @@ public class MusicServer extends SwingWorker<Void, Void> implements VolumeObserv
             Object o;
             Protokoll protokoll;
             ServerAddr serverAddr;
-            Map<String, ServerAddr> servers;
+            Map<String, ServerAddr> serverAddrs;
             RecordInterface record;
             String musicPlayerTitle;
             MusicPlayerInterface musicPlayer;
@@ -179,23 +157,13 @@ public class MusicServer extends SwingWorker<Void, Void> implements VolumeObserv
                     protokoll = (Protokoll) o;
                     switch (protokoll.getProtokollType()) {
                         case SERVER_ADDR_REQUEST:
-//                        serverAddr = (ServerAddr) protokoll.getValue();
-//                        if (serverAddr != null) {
-//                            ServerPool.getInstance(musicSystem.getServerAddr()).addServer(serverAddr.getName(), serverAddr);
-//                            // Clients auch noch über den aktuellen Serverpool informieren
-//                            talkToAll(new Protokoll(SERVER_POOL, ServerPool.getInstance(musicSystem.getServerAddr())));
-//                        }
                             oos.writeObject(new Protokoll(SERVER_ADDR, musicSystem.getServerAddr()));
                             oos.flush();
                             break;
                         case SERVER_ADDR:
-//                        servers.add(oos);
                             serverAddr = (ServerAddr) protokoll.getValue();
                             System.out.println(System.currentTimeMillis() + "SERVER: habe eine Verbindung mit " + serverAddr.getName());
                             ServerPool.getInstance().addServer(serverAddr.getName(), serverAddr);
-                            //Information über aktiven Server an alle aktiven Server weitergeben.
-                            //Anderen Protokolltype verwenden, damit keine Endlosschleife entsteht.
-//                        talkToAllServer(new Protokoll(SERVER_POOL, ServerPool.getInstance(musicSystem.getServerAddr())));
                             // Clients auch noch über den aktuellen Serverpool informieren
                             talkToAll(new Protokoll(SERVER_POOL, ServerPool.getInstance().getServers()));
                             break;
@@ -217,8 +185,13 @@ public class MusicServer extends SwingWorker<Void, Void> implements VolumeObserv
                             }
                             break;
                         case SERVER_POOL:
-                            servers = (Map<String, ServerAddr>) protokoll.getValue();
-                            ServerPool.getInstance().addServers(servers);
+                            serverAddrs = (Map<String, ServerAddr>) protokoll.getValue();
+                            ServerPool.getInstance().addServers(serverAddrs);
+                        case SERVER_POOL_REDUCED:
+                            serverAddrs = (Map<String, ServerAddr>) protokoll.getValue();
+                            ServerPool.getInstance().setServers(serverAddrs);
+                            // Clients auch noch über den aktuellen Serverpool informieren
+                            talkToAll(new Protokoll(SERVER_POOL, ServerPool.getInstance().getServers()));
                             break;
                         case MUSIC_PLAYER_SELECTED:
                             //Achtung: Rückkopplung vermeiden

@@ -7,10 +7,14 @@ package de.beinlich.markus.musicsystem.gui;
 
 import de.beinlich.markus.musicsystem.model.net.*;
 import de.beinlich.markus.musicsystem.model.*;
+import static de.beinlich.markus.musicsystem.model.net.ProtokollType.SERVER_POOL;
 import java.awt.EventQueue;
 import java.awt.event.*;
+import java.io.InvalidObjectException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Enumeration;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.*;
 
 public class MusicServerApp extends javax.swing.JFrame implements VolumeObserver, TrackTimeObserver, TrackObserver, StateObserver, RecordObserver, MusicPlayerObserver, MusicCollectionObserver {
@@ -98,6 +102,11 @@ public class MusicServerApp extends javax.swing.JFrame implements VolumeObserver
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle(musicSystem.getMusicSystemName() + " - " + musicSystem.getLocation()+ " -" + musicSystem.getServerAddr().getServer_ip()+":"+musicSystem.getServerAddr().getPort());
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowClosing(java.awt.event.WindowEvent evt) {
+                formWindowClosing(evt);
+            }
+        });
 
         buttonPlay.setText("Play");
         buttonPlay.addActionListener(new java.awt.event.ActionListener() {
@@ -399,6 +408,18 @@ public class MusicServerApp extends javax.swing.JFrame implements VolumeObserver
             musicSystemController.seek(sliderProgress.getValue());
         }
     }//GEN-LAST:event_sliderProgressStateChanged
+
+    private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
+        System.out.println("Server shutdown");
+        ServerPool.getInstance().removeServer(musicSystem.getServerAddr().getName());
+        new ServerShutdown(ServerPool.getInstance()).shutdownServers();
+//        try {
+//            // Server auch noch über den aktuellen Serverpool informieren
+//            musicServer.talkToAllServer(new Protokoll(SERVER_POOL, ServerPool.getInstance().getServers()));
+//        } catch (InvalidObjectException ex) {
+//            Logger.getLogger(MusicServerApp.class.getName()).log(Level.SEVERE, null, ex);
+//        }
+    }//GEN-LAST:event_formWindowClosing
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.ButtonGroup buttonGroupPlayer;
