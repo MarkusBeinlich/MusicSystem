@@ -5,8 +5,6 @@
  */
 package de.beinlich.markus.musicsystem.model;
 
-import java.io.Serializable;
-
 /**
  *
  * @author Markus Beinlich
@@ -18,6 +16,7 @@ public abstract class PlayListComponent implements PlayListComponentInterface {
     private int uid;
     private String fileName;
 
+    @Override
     public PlayListComponentDto getDto() {
         PlayListComponentDto playListComponentDto = new PlayListComponentDto();
         playListComponentDto.title = this.title;
@@ -43,35 +42,22 @@ public abstract class PlayListComponent implements PlayListComponentInterface {
         throw new UnsupportedOperationException();
     }
 
-    /**
-     *
-     * @param i
-     * @return
-     */
     public PlayListComponent getChild(int i) {
         throw new UnsupportedOperationException();
     }
 
-    /**
-     *
-     * @return
-     */
+    @Override
     public String getTitle() {
         return title;
     }
 
-    /**
-     *
-     * @return
-     */
+    @Override
     public int getUid() {
         return uid;
     }
 
-    /**
-     *
-     * @return
-     */
+ 
+    @Override
     public int getPlayingTime() {
         return playingTime;
     }

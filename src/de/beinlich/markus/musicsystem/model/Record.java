@@ -76,10 +76,6 @@ public class Record implements RecordInterface {
         this.title = title;
     }
 
-    @Override
-    public int hashCode() {
-        return title.hashCode();
-    }
 
     @Override
     public boolean equals(Object obj) {
@@ -93,8 +89,24 @@ public class Record implements RecordInterface {
             return false;
         }
         final Record other = (Record) obj;
-        return this.title.equals(other.title);
+        if (this.rid != other.rid) {
+            return false;
+        }
+        if (!Objects.equals(this.title, other.title)) {
+            return false;
+        }
+        return true;
     }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 17 * hash + this.rid;
+        hash = 17 * hash + Objects.hashCode(this.title);
+        return hash;
+    }
+
+
 
     @Override
     public String toString() {
