@@ -43,10 +43,6 @@ class MusicSystem implements MusicSystemInterfaceObserver {
 
     private transient final ArrayList<MusicPlayerObserver> musicPlayerObservers = new ArrayList<>();
 
-    /**
-     *
-     * @param name
-     */
     private MusicSystem() {
         this("musicsystem");
     }
@@ -55,32 +51,14 @@ class MusicSystem implements MusicSystemInterfaceObserver {
         this(name, "Sonstwo");
     }
 
-    /**
-     *
-     * @param name
-     * @param location
-     */
     private MusicSystem(String name, String location) {
         this(name, location, false);
     }
 
-    /**
-     *
-     * @param name
-     * @param location
-     * @param power
-     */
     private MusicSystem(String name, String location, boolean power) {
         this(name, location, power, false);
     }
 
-    /**
-     *
-     * @param name
-     * @param location
-     * @param power
-     * @param onOffSwitch
-     */
     private MusicSystem(String name, String location, boolean power, boolean onOffSwitch) {
         this.musicSystemName = name;
         this.location = name;

@@ -54,7 +54,7 @@ class Mp3Player extends AbstractMusicPlayer {
     public void setCurrentTrack(PlayListComponent currentTrack) {
         //am ende eines Track den usecounter auf der datenbank hochzählen
         if (this.getCurrentTrack() != null) {
-            if (this.getCurrentTimeTrack() == currentTrack.getPlayingTime()) {
+            if ( currentTrack.getPlayingTime() - this.getCurrentTimeTrack() < 10) {
                 try (DatabaseConnection dbc = new DatabaseConnection()) {
                     RecordCollectionConnector rcc = new RecordCollectionConnector(dbc);
                     rcc.incrementUseCounter(currentTrack.getUid());
