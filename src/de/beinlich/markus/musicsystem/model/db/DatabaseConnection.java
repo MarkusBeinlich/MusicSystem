@@ -8,8 +8,8 @@ import java.util.*;
  *
  * @author IBB Teilnehmer
  */
-public class DatabaseConnection implements AutoCloseable {
-    
+public enum DatabaseConnection {
+    INSTANCE;
     // Verbindungs-Parameter
     private String host;
     private String user;
@@ -22,7 +22,7 @@ public class DatabaseConnection implements AutoCloseable {
     /**
      *
      */
-    public DatabaseConnection() {
+    private DatabaseConnection() {
         if (!initConnection()) {
             throw new IllegalStateException("connection failed");
         }
@@ -82,7 +82,6 @@ public class DatabaseConnection implements AutoCloseable {
         return connection;
     }
     
-    @Override
     public void close() {
         try {
             connection.close();

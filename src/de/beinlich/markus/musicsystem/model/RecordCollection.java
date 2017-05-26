@@ -17,7 +17,7 @@ class RecordCollection extends MusicCollection {
 
     private RecordCollection () {
         super();
-        RecordCollectionConnector rcc = new RecordCollectionConnector(dbc);
+        RecordCollectionConnector rcc = new RecordCollectionConnector();
         this.records = rcc.readRecords("Record");
      };
      

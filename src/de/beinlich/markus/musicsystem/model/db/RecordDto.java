@@ -10,7 +10,7 @@ import java.util.Objects;
  *
  * @author IBB Teilnehmer
  */
-public class RecordDAO {
+public class RecordDto {
 
     private int rid;
     private String title;
@@ -26,11 +26,11 @@ public class RecordDAO {
      * @param artist
      * @param medium
      */
-    public RecordDAO(String title, String artist, String path, String medium) {
+    public RecordDto(String title, String artist, String path, String medium) {
         this(0, title, artist, path, medium, null);
     }
 
-    public RecordDAO(String title, String artist, String path, String medium, Blob cover) {
+    public RecordDto(String title, String artist, String path, String medium, Blob cover) {
         this(0, title, artist, path, medium, cover);
     }
 
@@ -42,7 +42,7 @@ public class RecordDAO {
      * @param artist
      * @param medium
      */
-    public RecordDAO(int rid, String title, String artist, String path, String medium, Blob cover) {
+    public RecordDto(int rid, String title, String artist, String path, String medium, Blob cover) {
         this.rid = rid;
         this.title = title;
         this.artist = artist;
@@ -63,7 +63,7 @@ public class RecordDAO {
         if (getClass() != obj.getClass()) {
             return false;
         }
-        final RecordDAO other = (RecordDAO) obj;
+        final RecordDto other = (RecordDto) obj;
         if (this.rid != other.rid) {
             return false;
         }

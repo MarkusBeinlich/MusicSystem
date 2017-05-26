@@ -5,7 +5,6 @@ import java.util.*;
 
 class MusicCollection implements MusicCollectionInterface {
 
-    protected transient static DatabaseConnection dbc = new DatabaseConnection();
     protected List<Record> records;
     private transient final ArrayList<MusicCollectionObserver> musicCollectionObservers = new ArrayList<>();
     private String format;

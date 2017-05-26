@@ -20,7 +20,7 @@ class CdCollection extends MusicCollection {
      */
     private CdCollection() {
         super();
-        RecordCollectionConnector rcc = new RecordCollectionConnector(dbc);
+        RecordCollectionConnector rcc = new RecordCollectionConnector();
         this.records = rcc.readRecords("CD");
     }
 

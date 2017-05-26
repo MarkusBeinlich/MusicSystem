@@ -21,7 +21,7 @@ class RadioStationCollection extends MusicCollection {
      */
     private RadioStationCollection() {
         super();
-        RecordCollectionConnector rcc = new RecordCollectionConnector(dbc);
+        RecordCollectionConnector rcc = new RecordCollectionConnector();
         this.records = rcc.readRadios();
     }
 

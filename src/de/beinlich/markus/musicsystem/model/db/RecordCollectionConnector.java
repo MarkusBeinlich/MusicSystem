@@ -1,9 +1,5 @@
 package de.beinlich.markus.musicsystem.model.db;
 
-// DAO - data access object
-// TODO - externes Connection handling
-// TODO - prepared Statements
-import de.beinlich.markus.musicsystem.model.PlayListComponentInterface;
 import de.beinlich.markus.musicsystem.model.*;
 import java.sql.*;
 import java.util.*;
@@ -19,19 +15,15 @@ public class RecordCollectionConnector {
 
     // Statement-Objekt / Transport von Informationen ZUR datenbank
     private Statement statement;
-    
-    /**
-     *
-     * @param dbc
-     */
+
+    public RecordCollectionConnector() {
+        this(DatabaseConnection.INSTANCE);
+    }
+
     public RecordCollectionConnector(DatabaseConnection dbc) {
         this(dbc.getConnection());
     }
-  
-    /**
-     *
-     * @param connection
-     */
+
     public RecordCollectionConnector(Connection connection) {
         try {
             this.connection = connection;
@@ -62,23 +54,23 @@ public class RecordCollectionConnector {
      *
      * @return
      */
-    public List<de.beinlich.markus.musicsystem.model.Record> readRadios() {
-        List<de.beinlich.markus.musicsystem.model.Record> radios = new ArrayList<>();
-        de.beinlich.markus.musicsystem.model.Record rec;
+    public List<Record> readRadios() {
+        List<Record> radios = new ArrayList<>();
+        Record rec;
         PlayListComponent radio;
         int uid = 0;
         String sql = "SELECT * FROM `radio` ";
         System.out.println(System.currentTimeMillis() + "-----------------readRadios");
-        rec = new de.beinlich.markus.musicsystem.model.Record(-1, "Radios", "", null);
+        rec = new Record(-1, "Radios", "", null);
         try {
             ResultSet resultSet = statement.executeQuery(sql);
             while (resultSet.next()) {
-                radio = new de.beinlich.markus.musicsystem.model.RadioStation(
+                radio = new RadioStation(
                         uid++,
                         resultSet.getString("title"),
                         resultSet.getString("frequency")
                 );
-                rec.addTrack((PlayListComponentInterface)radio);
+                rec.addTrack((PlayListComponentInterface) radio);
             }
         } catch (SQLException ex) {
             System.out.println(ex);
@@ -94,10 +86,10 @@ public class RecordCollectionConnector {
      * @param medium
      * @return
      */
-    public List<de.beinlich.markus.musicsystem.model.Record> readRecords(String medium) {
-        List<de.beinlich.markus.musicsystem.model.Record> records = new ArrayList<>();
-        de.beinlich.markus.musicsystem.model.Record rec;
-        de.beinlich.markus.musicsystem.model.Track track;
+    public List<Record> readRecords(String medium) {
+        List<Record> records = new ArrayList<>();
+        Record rec;
+        Track track;
 
         String sql = "SELECT `record`.*, `track`.* FROM `track` LEFT JOIN `record` ON `track`.`RID` = `record`.`RID` WHERE `MEDIUM` =\"" + medium + "\" ORDER BY `track`.`RID` ASC, `TRACKNUMBER` ASC";
         System.out.println(System.currentTimeMillis() + "readRecords-----------------------------------------");
@@ -109,7 +101,7 @@ public class RecordCollectionConnector {
                 //Bei Gruppenwechsel neuen Record anlegen
                 if (rid != resultSet.getInt("rid")) {
                     rid = resultSet.getInt("rid");
-                    rec = new de.beinlich.markus.musicsystem.model.Record(
+                    rec = new Record(
                             rid,
                             resultSet.getString("title"),
                             resultSet.getString("artist"),
@@ -117,14 +109,14 @@ public class RecordCollectionConnector {
                     );
                     records.add(rec);
                 }
-                track = new de.beinlich.markus.musicsystem.model.Track(
+                track = new Track(
                         resultSet.getString("track.title"),
                         resultSet.getInt("playingTime"),
                         resultSet.getInt("uid"),
                         resultSet.getString("filename")
                 );
                 if (rec != null) {
-                    rec.addTrack((PlayListComponentInterface)track);
+                    rec.addTrack((PlayListComponentInterface) track);
                 }
             }
         } catch (SQLException ex) {
@@ -134,10 +126,11 @@ public class RecordCollectionConnector {
 
         return records;
     }
-    public List<de.beinlich.markus.musicsystem.model.Record> readMp3s() {
-        List<de.beinlich.markus.musicsystem.model.Record> records = new ArrayList<>();
-        de.beinlich.markus.musicsystem.model.Record rec;
-        de.beinlich.markus.musicsystem.model.Track track;
+
+    public List<Record> readMp3s() {
+        List<Record> records = new ArrayList<>();
+        Record rec;
+        Track track;
 
         String sql = "SELECT `record`.*, `track`.* FROM `track` LEFT JOIN `record` ON `track`.`RID` = `record`.`RID` WHERE `FILENAME` IS NOT NULL ORDER BY `track`.`RID` ASC, `TRACKNUMBER` ASC";
         System.out.println(System.currentTimeMillis() + "readMp3s---------------------------------------------");
@@ -149,22 +142,22 @@ public class RecordCollectionConnector {
                 //Bei Gruppenwechsel neuen Record anlegen
                 if (rid != resultSet.getInt("rid")) {
                     rid = resultSet.getInt("rid");
-                    rec = new de.beinlich.markus.musicsystem.model.Record(
-                            rid, 
+                    rec = new Record(
+                            rid,
                             resultSet.getString("title"),
                             resultSet.getString("artist"),
                             resultSet.getBytes("cover")
                     );
                     records.add(rec);
                 }
-                track = new de.beinlich.markus.musicsystem.model.Track(
+                track = new Track(
                         resultSet.getString("track.title"),
                         resultSet.getInt("playingTime"),
                         resultSet.getInt("uid"),
                         resultSet.getString("filename")
                 );
                 if (rec != null) {
-                    rec.addTrack((PlayListComponentInterface)track);
+                    rec.addTrack((PlayListComponentInterface) track);
                 }
             }
         } catch (SQLException ex) {

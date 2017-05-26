@@ -19,8 +19,7 @@ public class RecordCollectionTester {
     }
 
     private void go() {
-            DatabaseConnection dbc = new DatabaseConnection();
-        RecordCollectionConnector rc = new RecordCollectionConnector(dbc);
+        RecordCollectionConnector rc = new RecordCollectionConnector();
 
         List<de.beinlich.markus.musicsystem.model.Record> records = rc.readRecords("CD");
         for (de.beinlich.markus.musicsystem.model.Record record : records) {

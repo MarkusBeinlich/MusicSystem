@@ -54,12 +54,12 @@ class Mp3Player extends AbstractMusicPlayer {
     public void setCurrentTrack(PlayListComponent currentTrack) {
         //am ende eines Track den usecounter auf der datenbank hochzählen
         if (this.getCurrentTrack() != null) {
-            if ( currentTrack.getPlayingTime() - this.getCurrentTimeTrack() < 10) {
-                try (DatabaseConnection dbc = new DatabaseConnection()) {
-                    RecordCollectionConnector rcc = new RecordCollectionConnector(dbc);
-                    rcc.incrementUseCounter(currentTrack.getUid());
-                    System.out.println(System.currentTimeMillis() + "incremented" + currentTrack.getUid());
-                }
+            if (currentTrack.getPlayingTime() - this.getCurrentTimeTrack() < 10) {
+
+                RecordCollectionConnector rcc = new RecordCollectionConnector();
+                rcc.incrementUseCounter(currentTrack.getUid());
+                System.out.println(System.currentTimeMillis() + "incremented" + currentTrack.getUid());
+
             }
         }
         String mediaSource;
@@ -79,15 +79,15 @@ class Mp3Player extends AbstractMusicPlayer {
     @Override
     public void play() {
         super.play();
-        mp3Player.play(); 
+        mp3Player.play();
         mp3Player.setVolume(getVolume() / 100);
     }
 
     @Override
     public void stop() {
 
-        if (getRecord() != null && getRecord().getTracks().size()>0) {
-            setCurrentTrack((PlayListComponent)getRecord().getTracks().get(0));
+        if (getRecord() != null && getRecord().getTracks().size() > 0) {
+            setCurrentTrack((PlayListComponent) getRecord().getTracks().get(0));
         }
         if (mp3Player != null) {
             mp3Player.stop();
@@ -106,12 +106,12 @@ class Mp3Player extends AbstractMusicPlayer {
         super.setVolume(volume);
         mp3Player.setVolume(volume / 100);
     }
-    
+
     @Override
-    public void seek(int currentTimeTrack ) {
+    public void seek(int currentTimeTrack) {
         System.out.println("MP3Player - seek: " + currentTimeTrack + " - " + this.getCurrentTimeTrack());
         super.seek(currentTimeTrack);
-        mp3Player.seek(new Duration(currentTimeTrack*1000));
+        mp3Player.seek(new Duration(currentTimeTrack * 1000));
     }
 
     /**
@@ -123,7 +123,7 @@ class Mp3Player extends AbstractMusicPlayer {
         //setCurrentTrack((getRecord().getTracks().length + getCurrentTrack() - 1) % getRecord().getTracks().length);
         int index = getRecord().getTracks().indexOf(getCurrentTrack());
         if (index > 0) {
-            setCurrentTrack((PlayListComponent)getRecord().getTracks().get(index - 1));
+            setCurrentTrack((PlayListComponent) getRecord().getTracks().get(index - 1));
         }
         System.out.println(System.currentTimeMillis() + "Mp3: " + getRecord().getTitle() + " Track: " + getCurrentTrack().getTitle() + " wird abgespielt.");
     }

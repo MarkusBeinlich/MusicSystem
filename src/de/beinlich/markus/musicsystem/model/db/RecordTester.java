@@ -19,8 +19,8 @@ public class RecordTester {
     private void go() {
         RecordConnector rc = new RecordConnector();
         
-        List<RecordDAO> records = rc.readRecords();
-        for (RecordDAO record : records) {
+        List<RecordDto> records = rc.readRecords();
+        for (RecordDto record : records) {
             System.out.println(record);
         }
         

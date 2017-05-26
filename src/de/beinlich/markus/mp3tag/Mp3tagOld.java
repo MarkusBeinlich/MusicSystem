@@ -11,8 +11,8 @@ import com.Ostermiller.util.LabeledCSVParser;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import de.beinlich.markus.musicsystem.model.db.DatabaseConnection;
-import de.beinlich.markus.musicsystem.model.db.RecordDAO;
-import de.beinlich.markus.musicsystem.model.db.TrackDAO;
+import de.beinlich.markus.musicsystem.model.db.RecordDto;
+import de.beinlich.markus.musicsystem.model.db.TrackDto;
 import java.io.FileReader;
 import java.io.IOException;
 import java.sql.*;
@@ -25,7 +25,7 @@ import java.util.logging.Logger;
  */
 public class Mp3tagOld {
 
-    Multimap<RecordDAO, TrackDAO> rc;
+    Multimap<RecordDto, TrackDto> rc;
 
     // Verbindungs-Objekt
     private DatabaseConnection dbCon;
@@ -53,8 +53,8 @@ public class Mp3tagOld {
             lcsvp.changeDelimiter(';');
 
             while (lcsvp.getLine() != null) {
-                rc.put(new RecordDAO(lcsvp.getValueByLabel("Album"), lcsvp.getValueByLabel("Interpret"),lcsvp.getValueByLabel("Pfad"), "CD"),
-                        new TrackDAO(0, 0, lcsvp.getValueByLabel("Titel"), 
+                rc.put(new RecordDto(lcsvp.getValueByLabel("Album"), lcsvp.getValueByLabel("Interpret"),lcsvp.getValueByLabel("Pfad"), "CD"),
+                        new TrackDto(0, 0, lcsvp.getValueByLabel("Titel"), 
                                 Integer.parseInt(lcsvp.getValueByLabel("Länge")), 0,
                                 lcsvp.getValueByLabel("Dateiname")));
             }
@@ -64,16 +64,15 @@ public class Mp3tagOld {
         System.out.println("RecordCollection:" + rc.size() + "-" + rc.toString());
         System.out.println("keyset: " + rc.keySet().size() + "-" + rc.keySet());
 
-        dbCon = new DatabaseConnection();
         int rid = 0;
         int tn = 0;
         int uid = 0;
 
-        for (RecordDAO record : rc.keySet()) {
+        for (RecordDto record : rc.keySet()) {
             System.out.println("Record: " + record);
             rid = insertRecord(record);
             tn = 1;
-            for (TrackDAO track : rc.get(record)) {
+            for (TrackDto track : rc.get(record)) {
                 track.setRid(rid);
                 track.setTrackNumber(tn++);
                 System.out.println("Track: " + track);
@@ -82,7 +81,7 @@ public class Mp3tagOld {
         }
     }
 
-    public int insertRecord(RecordDAO record) {
+    public int insertRecord(RecordDto record) {
         int rid = 0;
         Connection con = null;
         ResultSet rs = null;
@@ -125,7 +124,7 @@ public class Mp3tagOld {
         return rid;
     }
 
-    public int insertTrack(TrackDAO track) {
+    public int insertTrack(TrackDto track) {
         int uid = 0;
         Connection con = null;
         ResultSet rs = null;

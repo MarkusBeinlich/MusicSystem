@@ -8,7 +8,7 @@ package de.beinlich.markus.musicsystem.model.db;
  *
  * @author IBB Teilnehmer
  */
-public class TrackDAO {
+public class TrackDto {
 
     private int rid;
     private int uid;
@@ -28,7 +28,7 @@ public class TrackDAO {
      * @param playingTime
      * @param useCounter
      */
-    public TrackDAO(int rid, int trackNumber, String title, int playingTime, int useCounter, String filename) {
+    public TrackDto(int rid, int trackNumber, String title, int playingTime, int useCounter, String filename) {
         this(0, rid, trackNumber, title, playingTime, useCounter, filename);
     }
 
@@ -43,7 +43,7 @@ public class TrackDAO {
      * @param playingTime
      * @param useCounter
      */
-    public TrackDAO(int uid, int rid, int trackNumber, String title, int playingTime, int useCounter, String filename) {
+    public TrackDto(int uid, int rid, int trackNumber, String title, int playingTime, int useCounter, String filename) {
         this.uid = uid;
         this.rid = rid;
         this.trackNumber = trackNumber;

@@ -27,8 +27,8 @@ import java.util.logging.Logger;
  */
 public class Mp3tag1 {
 
-    Multimap<RecordDAO, TrackDAO> rc;
-    Collection<TrackDAO> rc2;
+    Multimap<RecordDto, TrackDto> rc;
+    Collection<TrackDto> rc2;
     RecordCollectionConnector rcc;
     protected List<de.beinlich.markus.musicsystem.model.Record> records;
 
@@ -75,11 +75,11 @@ public class Mp3tag1 {
                 //Records ohne Title geben keinen Sinn und wenn die länge nicht nummerisch ist
                 //gibt das auch keinen Sinn. (Normalerweise ist ein ; im Titel. Die sind nicht maskiert
                 if ((!lcsvp.getValueByLabel("Titel").trim().equals("")) && (isInteger(lcsvp.getValueByLabel("Länge")))) {
-                    rc.put(new RecordDAO(lcsvp.getValueByLabel("Album"),
+                    rc.put(new RecordDto(lcsvp.getValueByLabel("Album"),
                             lcsvp.getValueByLabel("Interpret"),
                             lcsvp.getValueByLabel("Pfad"),
                             "CD"),
-                            new TrackDAO(0, 0, lcsvp.getValueByLabel("Titel"),
+                            new TrackDto(0, 0, lcsvp.getValueByLabel("Titel"),
                                     Integer.parseInt(lcsvp.getValueByLabel("Länge")), 0,
                                     lcsvp.getValueByLabel("Pfad")+ lcsvp.getValueByLabel("Dateiname")));
                 }
@@ -90,9 +90,8 @@ public class Mp3tag1 {
         System.out.println("RecordCollection:" + rc.size() + "-");// + rc.toString());
         System.out.println("keyset: " + rc.keySet().size() + "-");// + rc.keySet());
 
-        dbCon = new DatabaseConnection();
         //einlesen der Records aus der Datenbank.
-        rcc = new RecordCollectionConnector(dbCon);
+        rcc = new RecordCollectionConnector();
         this.records = rcc.readRecords("CD");
 
         int rid = 0;
@@ -100,14 +99,14 @@ public class Mp3tag1 {
         int uid = 0;
         int i = 0;
 
-        for (RecordDAO record : rc.keySet()) {
+        for (RecordDto record : rc.keySet()) {
             System.out.println("i:" + i++);
             System.out.println("Record: " + record);
             //Nur einfügen, wenn der Titel noch nicht als CD existiert
             if (!records.contains(new Record(record.getTitle()))) {
                 rid = insertRecord(record);
                 tn = 1;
-                for (TrackDAO track : rc.get(record)) {
+                for (TrackDto track : rc.get(record)) {
                     track.setRid(rid);
                     track.setTrackNumber(tn++);
                     System.out.println("Track: " + track);
@@ -117,7 +116,7 @@ public class Mp3tag1 {
         }
     }
 
-    public int insertRecord(RecordDAO record) {
+    public int insertRecord(RecordDto record) {
         int rid = 0;
         Connection con = null;
         ResultSet rs = null;
@@ -177,7 +176,7 @@ public class Mp3tag1 {
         return rid;
     }
 
-    public int insertTrack(TrackDAO track) {
+    public int insertTrack(TrackDto track) {
         int uid = 0;
         Connection con = null;
         ResultSet rs = null;

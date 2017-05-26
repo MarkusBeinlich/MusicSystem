@@ -19,7 +19,7 @@ class Mp3Collection extends MusicCollection {
      */
     private Mp3Collection () {
         super();
-        RecordCollectionConnector rcc = new RecordCollectionConnector(dbc);
+        RecordCollectionConnector rcc = new RecordCollectionConnector();
         this.records = rcc.readRecords("CD");
      };
     

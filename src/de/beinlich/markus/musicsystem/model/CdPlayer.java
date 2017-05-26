@@ -48,7 +48,7 @@ class CdPlayer extends AbstractMusicPlayer {
         //setCurrentTrack((getRecord().getTracks().length + getCurrentTrack() - 1) % getRecord().getTracks().length);
         int index = getRecord().getTracks().indexOf(getCurrentTrack());
         if (index > 0) {
-            setCurrentTrack((PlayListComponent)getRecord().getTracks().get(index - 1));
+            setCurrentTrack((PlayListComponent) getRecord().getTracks().get(index - 1));
         }
         System.out.println(System.currentTimeMillis() + "CD: " + getRecord().getTitle() + " Track: " + getCurrentTrack().getTitle() + " wird abgespielt.");
     }
@@ -58,9 +58,9 @@ class CdPlayer extends AbstractMusicPlayer {
      */
     @Override
     public final void setRecord(Record cd) {
-        System.out.println(System.currentTimeMillis() + "CD: " + ((cd == null)? "null" : cd.getTitle()) + " wird eingelegt.");
+        System.out.println(System.currentTimeMillis() + "CD: " + ((cd == null) ? "null" : cd.getTitle()) + " wird eingelegt.");
         super.setRecord(cd);
-        System.out.println(System.currentTimeMillis() + "CD: " + ((cd == null)? "null" : cd.getTitle()) + " wurde eingelegt.");
+        System.out.println(System.currentTimeMillis() + "CD: " + ((cd == null) ? "null" : cd.getTitle()) + " wurde eingelegt.");
     }
 
     @Override
@@ -68,11 +68,11 @@ class CdPlayer extends AbstractMusicPlayer {
         //am ende eines Track den usecounter auf der datenbank hochzählen
         if (this.getCurrentTrack() != null) {
             if (this.getCurrentTimeTrack() == currentTrack.getPlayingTime()) {
-                try (DatabaseConnection dbc = new DatabaseConnection()) {
-                    RecordCollectionConnector rcc = new RecordCollectionConnector(dbc);
-                    rcc.incrementUseCounter(currentTrack.getUid());
-                    System.out.println(System.currentTimeMillis() + "incremented" + currentTrack.getUid());
-                }
+
+                RecordCollectionConnector rcc = new RecordCollectionConnector();
+                rcc.incrementUseCounter(currentTrack.getUid());
+                System.out.println(System.currentTimeMillis() + "incremented" + currentTrack.getUid());
+
             }
         }
 
@@ -82,8 +82,8 @@ class CdPlayer extends AbstractMusicPlayer {
     @Override
     public void stop() {
 
-        if (getRecord() != null && getRecord().getTracks().size()>0) {
-            setCurrentTrack((PlayListComponent)getRecord().getTracks().get(0));
+        if (getRecord() != null && getRecord().getTracks().size() > 0) {
+            setCurrentTrack((PlayListComponent) getRecord().getTracks().get(0));
         }
         super.stop();
     }

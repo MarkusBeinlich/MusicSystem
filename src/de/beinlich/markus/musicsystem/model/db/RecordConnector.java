@@ -67,15 +67,15 @@ public class RecordConnector implements AutoCloseable {
      *
      * @return
      */
-    public List<RecordDAO> readRecords() {
-        List<RecordDAO> records = new ArrayList<>();
+    public List<RecordDto> readRecords() {
+        List<RecordDto> records = new ArrayList<>();
         
         String sql = "SELECT * FROM record";
         
         try {
             ResultSet resultSet = statement.executeQuery(sql);
             while (resultSet.next()) {
-                records.add(new RecordDAO(
+                records.add(new RecordDto(
                         resultSet.getInt("rid"),
                         resultSet.getString("title"),
                         resultSet.getString("artist"),
